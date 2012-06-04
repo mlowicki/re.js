@@ -1,4 +1,9 @@
 re.js
 =====
 
-JavaScript regular expressions parser.
+Parser for JavaScript regular expressions.
+
+Usage
+=====
+
+    re.parse('a{1,3}|b+');
