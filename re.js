@@ -60,8 +60,7 @@ var re = (function() {
   Node.T_EMPTY = 'EMPTY';
   Node.T_CHAR = 'CHAR';
   Node.T_DOT = 'DOT';
-  Node.T_NON_CAPTURE_GROUP = 'NON-CAPTURE GROUP';
-  Node.T_CAPTURE_GROUP = 'CAPTURE GROUP';
+  Node.T_GROUP = 'GROUP';
   Node.T_CHAR_CLASS_ESCAPE = 'CHARACTER CLASS ESCAPE';
   Node.T_DECIMAL_ESCAPE = 'DECIMAL ESCAPE';
   Node.T_DECIMAL_INTEGER = 'DECIMAL INTEGER';
@@ -461,14 +460,14 @@ var re = (function() {
       disjunction = parseDisjunction();
       assert(')');
       pos += 1;
-      return new Node(Node.T_NON_CAPTURE_GROUP, undefined, disjunction);
+      return new Node(Node.T_GROUP, false, disjunction);
     }
     else if (lookAhead(1) === '(') {
       pos += 1;
       disjunction = parseDisjunction();
       assert(')');
       pos += 1;
-      return new Node(Node.T_CAPTURE_GROUP, undefined, disjunction);
+      return new Node(Node.T_GROUP, true, disjunction);
     }
     else if (lookAhead(1) === '\\') {
       pos += 1;
