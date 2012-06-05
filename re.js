@@ -63,13 +63,11 @@ var re = (function() {
   Node.T_GROUP = 'GROUP';
   Node.T_CHAR_CLASS_ESCAPE = 'CHARACTER CLASS ESCAPE';
   Node.T_DECIMAL_ESCAPE = 'DECIMAL ESCAPE';
-  Node.T_DECIMAL_INTEGER = 'DECIMAL INTEGER';
   Node.T_CONTROL_ESCAPE = 'CONTROL ESCAPE';
   Node.T_CONTROL_LETTER = 'CONTROL LETTER';
   Node.T_HEX_ESCAPE = 'HEX ESCAPE';
   Node.T_UNICODE_ESCAPE = 'UNICODE ESCAPE';
   Node.T_IDENTITY_ESCAPE = 'IDENTITY_ESCAPE';
-  Node.T_HEX_DIGIT = 'HEX DIGIT';
   Node.T_ASSERT = 'ASSERT';
   Node.T_CHAR_CLASS = 'CHARACTER CLASS';
   Node.T_RANGE = 'RANGE';
@@ -757,7 +755,7 @@ var re = (function() {
         return null;
       }
 
-      return new Node(Node.T_HEX_ESCAPE, first.value + second.value);
+      return new Node(Node.T_HEX_ESCAPE, first + second);
     }
 
     return null;
@@ -783,7 +781,7 @@ var re = (function() {
           return null;
         }
 
-        sequence += res.value;
+        sequence += res;
       }
 
       return new Node(Node.T_UNICODE_ESCAPE, sequence);
@@ -796,14 +794,14 @@ var re = (function() {
    * HexDigit:: one of
    *    0 1 2 3 4 5 6 7 8 9 a b c d e f A B C D E F
    *
-   * @return {?Node}
+   * @return {?string}
    */
   function parseHexDigit() {
     var c = lookAhead(1);
 
     if (HEX_DIGIT.indexOf(c) !== -1) {
       pos += 1;
-      return new Node(Node.T_HEX_DIGIT, c);
+      return c;
     }
 
     return null;
@@ -866,14 +864,14 @@ var re = (function() {
    *    0
    *    NonZeroDigit DecimalDigits_opt
    *
-   * @return {?Node}
+   * @return {?Number}
    */
   function parseDecimalIntegerLiteral() {
     var head,
         tail;
 
     if (lookAhead(1) === '0') {
-      return new Node(Node.T_DECIMAL_INTEGER, 0);
+      return 0;
     }
     else if (lookAhead(1) >= '1' && lookAhead(1) <= '9') {
       head = Number(lookAhead(1));
@@ -881,10 +879,10 @@ var re = (function() {
       tail = parseDecimalDigits();
 
       if (tail === null) {
-        return new Node(Node.T_DECIMAL_INTEGER, head);
+        return head;
       }
       else {
-        return new Node(Node.T_DECIMAL_INTEGER, Number(head.toString() + tail.value.toString()));
+        return Number(head.toString() + tail.value.toString());
       }
     }
 
