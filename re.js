@@ -219,7 +219,7 @@ var re = (function() {
     }
 
     return terms.reduceRight(function(prev, cur) {
-      return new Node(Node.T_CONCAT, undefined, prev, cur); 
+      return new Node(Node.T_CONCAT, undefined, cur, prev);
     });
   }
 
