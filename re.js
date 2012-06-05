@@ -69,6 +69,7 @@ var re = (function() {
   Node.T_CONTROL_LETTER = 'CONTROL LETTER';
   Node.T_HEX_ESCAPE = 'HEX ESCAPE';
   Node.T_UNICODE_ESCAPE = 'UNICODE ESCAPE';
+  Node.T_IDENTITY_ESCAPE = 'IDENTITY_ESCAPE';
   Node.T_HEX_DIGIT = 'HEX DIGIT';
   Node.T_ASSERT = 'ASSERT';
   Node.T_CHAR_CLASS = 'CHARACTER CLASS';
@@ -693,7 +694,7 @@ var re = (function() {
    *    UnicodeEscapeSequence
    *    IdentityEscape
    *
-   * @return {?Node}
+   * @return {Node}
    */
   function parseCharacterEscape() {
     var res = parseControlEscape();
@@ -722,43 +723,14 @@ var re = (function() {
   }
 
   /**
-   * IdentityEscape::
-   *    SourceCharacter but not IdentifierPart
-   *    <ZWJ>
-   *    <ZWNJ>
-   *
-   * IdentifierPart::
-   *    IdentifierStart
-   *    UnicodeCombiningMark
-   *    UnicodeDigit
-   *    UnicodeConnectorPunctuation
-   *    <ZWNJ>
-   *    <ZWJ>
-   *
-   * IdentifierStart::
-   *    UnicodeLetter
-   *    $
-   *    _
-   *    \ UnicodeEscapeSequence
-   *
-   * UnicodeLetter::
-   *    any character in the Unicode categories "Uppercase letter (Lu)", "Lowercase letter (Ll)",
-   *    "Titlecase letter (Lt)", "Modifier letter (Lm)", "Other letter (Lo)", or "Letter number (Nl)".
-   *
-   * UnicodeCombiningMark::
-   *    any character in the Unicode categories "Non-spacing mark (Mn)" or "Combining spacing mark (Mc)"
-   *
-   * UnicodeDigit::
-   *    any character in the Unicode category "Decimal number (Nd)"
-   *
-   * UnicodeConnectorPunctuation::
-   *    any character in the Unicode category "Connector punctuation (Pc)"
-   *
-   * @return {?Node}
+   * @return {Node}
    */
   function parseIdentityEscape() {
-    // TODO
-    return null;
+    if (pos === stream.length) {
+      throw new Error('\\ at end of pattern');
+    }
+
+    return new Node(Node.T_IDENTITY_ESCAPE, stream[pos++]);
   }
 
   /**
