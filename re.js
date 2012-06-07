@@ -141,6 +141,27 @@ var re = (function() {
   }
 
   /**
+   * @param {Node} node Input node.
+   */
+  function validate_range(node) {
+    if (node.type != Node.T_RANGE) {
+      throw new Error('Range node required but found ' + node.type);
+    }
+
+    if (node.left.type != Node.T_CHAR) {
+      throw new Error('Child of range node should be character node but found ' + node.left.type);
+    }
+
+    if (node.right.type != Node.T_CHAR) {
+      throw new Error('Child of range node should be character node but found ' + node.right.type);
+    }
+
+    if (node.left.value.charCodeAt(0) > node.right.value.charCodeAt(0)) {
+      throw new Error('Range out of order in character class');
+    }
+  }
+
+  /**
    * @return {boolean} True if end of stream has been reached, false otherwise.
    */
   function eos() {
@@ -535,6 +556,7 @@ var re = (function() {
   function parseClassRanges() {
     var from,
         to,
+        range,
         ranges,
         last,
         beforeLast;
@@ -562,10 +584,14 @@ var re = (function() {
       ranges = parseClassRanges();
 
       if (ranges !== null && ranges.type !== Node.T_EMPTY) {
-        return new Node(Node.T_CONCAT, undefined, new Node(Node.T_RANGE, undefined, from, to), ranges);
+        range = new Node(Node.T_RANGE, undefined, from ,to);
+        validate_range(range);
+        return new Node(Node.T_CONCAT, range, ranges);
       }
 
-      return new Node(Node.T_RANGE, undefined, from, to); 
+      range = new Node(Node.T_RANGE, undefined, from, to);
+      validate_range(range);
+      return range;
     }
     else {
       ranges = [from];
@@ -585,8 +611,9 @@ var re = (function() {
             beforeLast = ranges.pop();
             last = to;
             to = parseClassAtom();
-            // TODO beforeLast can be e.g. \b .What to do then with range \b - a ?
-            ranges.push(new Node(Node.T_RANGE, undefined, beforeLast, to));
+            range = new Node(Node.T_RANGE, undefined, beforeLast, to);
+            validate_range(range);
+            ranges.push(range);
 
             if (lookAhead(1) !== ']') {
               ranges.push(parseClassRanges());
