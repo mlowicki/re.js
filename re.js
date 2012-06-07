@@ -140,14 +140,25 @@ var re = (function() {
     pos = 0;
   }
 
+  /**
+   * @return {boolean} True if end of stream has been reached, false otherwise.
+   */
+  function eos() {
+    return pos >= stream.length;
+  }
+
   function lookAhead(numOfChars) {
     return stream.substr(pos, numOfChars);
   }
 
-  function assert(character) {
+  function assert(character, message) {
     if (stream[pos] !== character) {
-      throw new Error("Expected '" + character + "' found " +
-        (pos < stream.length ? "'" + stream[pos] + "'" : 'end of stream'));
+      if (!message) {
+        message = "Expected '" + character + "' found " +
+            (pos < stream.length ? "'" + stream[pos] + "'" : 'end of stream');
+      }
+
+      throw new Error(message);
     }
   }
 
@@ -497,7 +508,7 @@ var re = (function() {
 
       ranges = parseClassRanges(); 
 
-      assert(']');
+      assert(']', 'Unterminated character class');
       pos += 1;
       return new Node(Node.T_CHAR_CLASS, negated, ranges);
     }
@@ -528,6 +539,8 @@ var re = (function() {
         ranges,
         last,
         beforeLast;
+
+    if (eos()) { return null; }
 
     if (lookAhead(1) === ']') {
       return new Node(Node.T_EMPTY);
@@ -619,6 +632,8 @@ var re = (function() {
    */
   function parseClassAtom() {
     var classEscape;
+
+    if (eos()) { return null; }
 
     if (['\\', ']', '-'].indexOf(lookAhead(1)) === -1) {
       return new Node(Node.T_CHAR, stream[pos++]);
