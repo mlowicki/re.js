@@ -507,7 +507,6 @@ var re = (function() {
       }
 
       ranges = parseClassRanges(); 
-
       assert(']', 'Unterminated character class');
       pos += 1;
       return new Node(Node.T_CHAR_CLASS, negated, ranges);
@@ -586,12 +585,10 @@ var re = (function() {
             beforeLast = ranges.pop();
             last = to;
             to = parseClassAtom();
-
             // TODO beforeLast can be e.g. \b .What to do then with range \b - a ?
             ranges.push(new Node(Node.T_RANGE, undefined, beforeLast, to));
 
             if (lookAhead(1) !== ']') {
-              // TODO can parseClassRanges return here null ?
               ranges.push(parseClassRanges());
             }
 
@@ -612,8 +609,6 @@ var re = (function() {
 
       return ranges[0]; 
     }
-
-    return null;
   };
 
   /**
