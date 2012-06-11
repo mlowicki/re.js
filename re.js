@@ -687,7 +687,6 @@ var re = (function() {
     else if (lookAhead(1) === '\\') {
       pos += 1;
       classEscape = parseClassEscape();
-      // TODO: What is parseClassEscape fails?
       return new Node(Node.T_CLASS_ESCAPE, undefined, classEscape);
     }
     else if (lookAhead(1) === '-') {
@@ -705,7 +704,7 @@ var re = (function() {
    *    CharacterEscape
    *    CharacterClassEscape
    *
-   * @return {?Node}
+   * @return {Node}
    */
   function parseClassEscape() {
     var res = parseDecimalEscape();
