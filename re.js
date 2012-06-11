@@ -359,7 +359,7 @@ var re = (function() {
   /**
    * DecimalDigits ::
    *    DecimalDigit
-   *    DecimalDigits DecimalDigits
+   *    DecimalDigits DecimalDigit
    *
    * @return {?Number}
    */
