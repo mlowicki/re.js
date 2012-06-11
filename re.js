@@ -62,7 +62,9 @@ var re = (function() {
   Node.T_DOT = 'DOT';
   Node.T_GROUP = 'GROUP';
   Node.T_CHAR_CLASS_ESCAPE = 'CHARACTER CLASS ESCAPE';
+  Node.T_CLASS_ESCAPE = 'CLASS ESCAPE';
   Node.T_DECIMAL_ESCAPE = 'DECIMAL ESCAPE';
+  Node.T_CHAR_ESCAPE = 'CHARACTER ESCAPE';
   Node.T_CONTROL_ESCAPE = 'CONTROL ESCAPE';
   Node.T_CONTROL_LETTER = 'CONTROL LETTER';
   Node.T_HEX_ESCAPE = 'HEX ESCAPE';
@@ -130,11 +132,17 @@ var re = (function() {
     }
   };
 
+  // Character ranges' modes.
+  var MODE_RANGE_STRICT = 1,
+      MODE_RANGE_TOLERANT = 2,
+      MODE_RANGE_TOLERANT_NO_CCE_AT_END = 4;
+
   var pos, // Current position in input stream.
       stream, // Input stream.
       HEX_DIGIT = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f', 'A', 'B', 'C', 'D', 'E', 'F',],
       CONTROL_ESCAPE = ['f', 'n', 'r', 't', 'v'],
-      NON_PATTERN_CHARACTER = ['^', '$', '\\', '.', '*', '+', '?', '(', ')', '[', ']', '{', '}', '|'];
+      NON_PATTERN_CHARACTER = ['^', '$', '\\', '.', '*', '+', '?', '(', ')', '[', ']', '{', '}', '|'],
+      mode = MODE_RANGE_TOLERANT;
 
   function reset() {
     pos = 0;
@@ -144,19 +152,35 @@ var re = (function() {
    * @param {Node} node Input node.
    */
   function validate_range(node) {
-    if (node.type != Node.T_RANGE) {
+    if (node.type !== Node.T_RANGE) {
       throw new Error('Range node required but found ' + node.type);
     }
 
-    if (node.left.type != Node.T_CHAR) {
-      throw new Error('Child of range node should be character node but found ' + node.left.type);
+    var left = node.left,
+        right = node.right;
+
+    if ((left.type === Node.T_CHAR_CLASS_ESCAPE || right.type === Node.T_CHAR_CLASS_ESCAPE) &&
+        !(mode & MODE_RANGE_STRICT)) {
+
+      if (right.type === Node.T_CHAR_CLASS_ESCAPE && mode & MODE_RANGE_TOLERANT_NO_CCE_AT_END) {
+        throw new Error('Character class escape not allowed at end of range');
+      }
+
+      return;
     }
 
-    if (node.right.type != Node.T_CHAR) {
-      throw new Error('Child of range node should be character node but found ' + node.right.type);
+    if (left.type !== Node.T_CHAR && left.type !== Node.T_CLASS_ESCAPE) {
+      throw new Error('Invalid left end of range. Found ' + node.left.type);
     }
 
-    if (node.left.value.charCodeAt(0) > node.right.value.charCodeAt(0)) {
+    if (right.type !== Node.T_CHAR && right.type !== Node.T_CLASS_ESCAPE) {
+      throw new Error('Invalid right end o range. Found ' + node.right.type);
+    }
+
+    left = left.type === Node.T_CHAR ? left.value : left.left.value + '';
+    right = right.type === Node.T_CHAR ? right.value : right.left.value + '';
+
+    if (left.charCodeAt(0) > right.charCodeAt(0)) {
       throw new Error('Range out of order in character class');
     }
   }
@@ -664,7 +688,7 @@ var re = (function() {
       pos += 1;
       classEscape = parseClassEscape();
       // TODO: What is parseClassEscape fails?
-      return classEscape;
+      return new Node(Node.T_CLASS_ESCAPE, undefined, classEscape);
     }
     else if (lookAhead(1) === '-') {
       pos += 1;
@@ -690,7 +714,7 @@ var re = (function() {
 
     if (lookAhead(1) === 'b') {
       pos += 1;
-      return new Node(Node.T_CHAR, '\\b');
+      return new Node(Node.T_CHAR, 'b');
     }
 
     res = parseCharacterClassEscape();
@@ -890,7 +914,7 @@ var re = (function() {
     var res = parseDecimalIntegerLiteral();
 
     if (res !== null) {
-      return new Node(Node.T_DECIMAL_ESCAPE, undefined, res);
+      return new Node(Node.T_DECIMAL_ESCAPE, res);
     }
 
     return null;
@@ -908,6 +932,7 @@ var re = (function() {
         tail;
 
     if (lookAhead(1) === '0') {
+      pos += 1;
       return 0;
     }
     else if (lookAhead(1) >= '1' && lookAhead(1) <= '9') {
@@ -958,8 +983,43 @@ var re = (function() {
   }
 
   return {
+    /**
+     * According to ES's grammar, start and end of range must be evaluated to single character.
+     * http://referenceerror.com/class-ranges-with-character-class-escape/
+     * @type {Number}
+     * @static
+     */
+    MODE_RANGE_STRICT: MODE_RANGE_STRICT,
+    /**
+     * Some browsers (e.g. Chrome 19) accepts character class escapes in ranges like /[\d-b]/ matches
+     * set {0,1, ... ,9, 'b', '-'}.
+     * http://referenceerror.com/class-ranges-with-character-class-escape/
+     * @type {Number}
+     * @static
+     */
+    MODE_RANGE_TOLERANT: MODE_RANGE_TOLERANT,
+    /**
+     * Firefox accepts /[\d-b]/ but throws syntax error exception when encounters character class escape and the
+     * end of range - /[a-\d]/.
+     * http://referenceerror.com/class-ranges-with-character-class-escape/
+     * @type {Number}
+     * @static
+     */
+    MODE_RANGE_TOLERANT_NO_CCE_AT_END: MODE_RANGE_TOLERANT_NO_CCE_AT_END,
     Tree: Tree,
     Node: Node,
+    /**
+     * @return {Number} current mode.
+     */
+    get mode() {
+      return mode;
+    },
+    /**
+     * @param {Number} m New mode.
+     */
+    set mode(m) {
+      mode = m;
+    },
     /**
      * Parses input stream
      * @param {string} s Input stream.
