@@ -61,7 +61,7 @@ var re = (function() {
   Node.T_CHAR = 'CHAR';
   Node.T_DOT = 'DOT';
   Node.T_GROUP = 'GROUP';
-  Node.T_CHAR_CLASS_ESCAPE = 'CHARACTER CLASS ESCAPE';
+  Node.T_CCE = 'CHARACTER CLASS ESCAPE';
   Node.T_CLASS_ESCAPE = 'CLASS ESCAPE';
   Node.T_DECIMAL_ESCAPE = 'DECIMAL ESCAPE';
   Node.T_CHAR_ESCAPE = 'CHARACTER ESCAPE';
@@ -159,10 +159,10 @@ var re = (function() {
     var left = node.left,
         right = node.right;
 
-    if ((left.type === Node.T_CHAR_CLASS_ESCAPE || right.type === Node.T_CHAR_CLASS_ESCAPE) &&
+    if ((left.type === Node.T_CCE || right.type === Node.T__CCE) &&
         !(mode & MODE_RANGE_STRICT)) {
 
-      if (right.type === Node.T_CHAR_CLASS_ESCAPE && mode & MODE_RANGE_TOLERANT_NO_CCE_AT_END) {
+      if (right.type === Node.T_CCE && mode & MODE_RANGE_TOLERANT_NO_CCE_AT_END) {
         throw new Error('Character class escape not allowed at end of range');
       }
 
@@ -960,22 +960,22 @@ var re = (function() {
     switch (lookAhead(1)) {
       case 'd':
         pos += 1;
-        return new Node(Node.T_CHAR_CLASS_ESCAPE, Node.C_DIGIT);
+        return new Node(Node.T_CCE, Node.C_DIGIT);
       case 'D':
         pos += 1;
-        return new Node(Node.T_CHAR_CLASS_ESCAPE, Node.C_NON_DIGIT);
+        return new Node(Node.T_CCE, Node.C_NON_DIGIT);
       case 's':
         pos += 1;
-        return new Node(Node.T_CHAR_CLASS_ESCAPE, Node.C_WHITESPACE);
+        return new Node(Node.T_CCE, Node.C_WHITESPACE);
       case 'S':
         pos += 1;
-        return new Node(Node.T_CHAR_CLASS_ESCAPE, Node.C_NON_WHITESPACE);
+        return new Node(Node.T_CCE, Node.C_NON_WHITESPACE);
       case 'w':
         pos += 1;
-        return new Node(Node.T_CHAR_CLASS_ESCAPE, Node.C_WORD_CHAR);
+        return new Node(Node.T_CCE, Node.C_WORD_CHAR);
       case 'W':
         pos += 1;
-        return new Node(Node.T_CHAR_CLASS_ESCAPE, Node.C_NON_WORD_CHAR);
+        return new Node(Node.T_CCE, Node.C_NON_WORD_CHAR);
       default:
         return null;
     }
