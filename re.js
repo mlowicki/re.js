@@ -135,14 +135,15 @@ var re = (function() {
   // Character ranges' modes.
   var MODE_RANGE_STRICT = 1,
       MODE_RANGE_TOLERANT = 2,
-      MODE_RANGE_TOLERANT_NO_CCE_AT_END = 4;
+      MODE_RANGE_TOLERANT_NO_CCE_AT_END = 4,
+      MODE_CURLY_BRACKETS_VERBATIM = 8;
 
   var pos, // Current position in input stream.
       stream, // Input stream.
       HEX_DIGIT = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f', 'A', 'B', 'C', 'D', 'E', 'F',],
       CONTROL_ESCAPE = ['f', 'n', 'r', 't', 'v'],
       NON_PATTERN_CHARACTER = ['^', '$', '\\', '.', '*', '+', '?', '(', ')', '[', ']', '{', '}', '|'],
-      mode = MODE_RANGE_TOLERANT;
+      mode = MODE_RANGE_TOLERANT | MODE_CURLY_BRACKETS_VERBATIM;
 
   function reset() {
     pos = 0;
@@ -479,8 +480,15 @@ var re = (function() {
    *
    * SourceCharacter::
    *    any Unicode code unit
+   *
+   * @param {string} character input character
+   * @return {boolean} true if input is pattern character, false otherwise.
    */
   function isPatternCharacter(character) {
+    if (mode & MODE_CURLY_BRACKETS_VERBATIM && (character === '{' || character === '}')) {
+      return true;
+    }
+
     return NON_PATTERN_CHARACTER.indexOf(character) == -1; 
   }
 
@@ -1005,8 +1013,13 @@ var re = (function() {
      * @static
      */
     MODE_RANGE_TOLERANT_NO_CCE_AT_END: MODE_RANGE_TOLERANT_NO_CCE_AT_END,
-    Tree: Tree,
-    Node: Node,
+    /**
+     * If quantifier cannot be parssed like /a{b/ then '{' will treated verbatim so regular expression is
+     * equivalent to /a\{b/.
+     * @type {Number}
+     * @static
+     */
+    MODE_CURLY_BRACKETS_VERBATIM: MODE_CURLY_BRACKETS_VERBATIM,
     /**
      * @return {Number} current mode.
      */
@@ -1019,6 +1032,8 @@ var re = (function() {
     set mode(m) {
       mode = m;
     },
+    Tree: Tree,
+    Node: Node,
     /**
      * Parses input stream
      * @param {string} s Input stream.
