@@ -369,13 +369,19 @@ var re = (function() {
           to = Infinity;
         }
       } 
-      else {
-        to = from;
-      }
 
-      assert('}');
-      pos += 1;
-      return new Node(Node.T_QUANTIFIER, {from: from, to: to, greedy: true});
+      if (lookAhead(1) === '}') {
+        pos += 1;
+        return new Node(Node.T_QUANTIFIER, {
+          from: from,
+          to: to === undefined ? from : to,
+          greedy: true
+        });
+      }
+      else {
+        pos -= 1 + from.toString().length + (to === undefined ? 0 : isFinite(to) ? to.toString().length + 1 : 1);
+        return null;
+      }
     }
 
     return null;
