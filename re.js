@@ -374,7 +374,7 @@ var re = (function() {
         pos += 1;
         return new Node(Node.T_QUANTIFIER, {
           from: from,
-          to: to === undefined ? from : to,
+          to: to,
           greedy: true
         });
       }
