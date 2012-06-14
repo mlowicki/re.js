@@ -9,177 +9,48 @@
 var re = (function() {
   'use strict';
 
-  /**
-   * Parse tree.
-   * @param {Node=} opt_root Tree's root node.
-   * @constructor
-   */
-  function Tree(opt_root) {
-    this.root_ = opt_root || null;
-  };
-
-  Tree.prototype = {
-    constructor: Tree,
-    toString: function() {
-      return '[object Tree]';
-    },
-    /**
-     * @return {?Node} tree's root.
-     */
-    get root() { return this.root_; },
-    /**
-     * @param {?Node} Root node.
-     */
-    set root(root) { this.root_ = root; },
-    /**
-     * @return {Array} List of tree nodes in infix order.
-     */
-    infix: function() {
-      return this.root ? this.root.infix() : [];
-    }
-  };
-
-  /**
-   * Parse tree node.
-   * @param {string} type Node's type.
-   * @param {*=} opt_value Node's value.
-   * @param {Node=} opt_left Left child.
-   * @param {Node=} opt_right Right child.
-   * @constructor
-   */
-  function Node(type, opt_value, opt_left, opt_right) {
-    this.type_ = type;
-    this.value_ = opt_value;
-    this.left_ = opt_left || null;
-    this.right_ = opt_right || null;
-  };
-
-  // Node types.
-  Node.T_OR = 'OR';
-  Node.T_CONCAT = 'CONCATENATION';
-  Node.T_EMPTY = 'EMPTY';
-  Node.T_CHAR = 'CHAR';
-  Node.T_DOT = 'DOT';
-  Node.T_GROUP = 'GROUP';
-  Node.T_CCE = 'CHARACTER CLASS ESCAPE';
-  Node.T_CLASS_ESCAPE = 'CLASS ESCAPE';
-  Node.T_DECIMAL_ESCAPE = 'DECIMAL ESCAPE';
-  Node.T_CHAR_ESCAPE = 'CHARACTER ESCAPE';
-  Node.T_CONTROL_ESCAPE = 'CONTROL ESCAPE';
-  Node.T_CONTROL_LETTER = 'CONTROL LETTER';
-  Node.T_HEX_ESCAPE = 'HEX ESCAPE';
-  Node.T_UNICODE_ESCAPE = 'UNICODE ESCAPE';
-  Node.T_IDENTITY_ESCAPE = 'IDENTITY_ESCAPE';
-  Node.T_ASSERT = 'ASSERT';
-  Node.T_CHAR_CLASS = 'CHARACTER CLASS';
-  Node.T_RANGE = 'RANGE';
-  Node.T_REPEAT = 'REPEAT';
-  Node.T_QUANTIFIER = 'QUANTIFIER';
-  // Character classes.
-  Node.C_DIGIT = 'DIGIT';
-  Node.C_NON_DIGIT = 'NON-DIGIT';
-  Node.C_WHITESPACE = 'WHITESPACE';
-  Node.C_NON_WHITESPACE = 'NON-WHITESPACE';
-  Node.C_WORD_CHAR = 'WORD CHARACTER';
-  Node.C_NON_WORD_CHAR = 'NON-WORD CHARACTER';
-
-  Node.prototype = {
-    constructor: Node,
-    toString: function() {
-      return '[object Node (' + this.type + (this.value !== undefined) ? ', ' + this.value : '' + ')]';
-    },
-    /**
-     * @return {*} Node's value.
-     */
-    get value() { return this.value_; },
-    /**
-     * @return {string} Node's type.
-     */ 
-    get type() { return this.type_; },
-    /**
-     * @param {?Node} left child.
-     */
-    set left(left) { this.left_ = left; },
-    /**
-     * @return {?Node} Left child.  
-     */
-    get left() { return this.left_; },
-    /**
-     * @param {?Node} Right child.
-     */
-    set right(right) { this.right_ = right; },
-    /**
-     * @return {?Node} Right child.
-     */
-    get right() { return this.right_; },
-    /**
-     * @return {Array} Nodes list in infix order of tree rooted in the current node.
-     */
-    infix: function() {
-      var res = [];
-
-      if (this.left) {
-        res = res.concat(this.left.infix());
-      }
-
-      res.push(this);
-
-      if (this.right) {
-        res = res.concat(this.right.infix());
-      }
-
-      return res;
-    }
-  };
-
-  // Character ranges' modes.
-  var MODE_RANGE_STRICT = 1,
-      MODE_RANGE_TOLERANT = 2,
-      MODE_RANGE_TOLERANT_NO_CCE_AT_END = 4,
-      MODE_CURLY_BRACKETS_VERBATIM = 8;
-
   var pos, // Current position in input stream.
       stream, // Input stream.
       HEX_DIGIT = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f', 'A', 'B', 'C', 'D', 'E', 'F',],
       CONTROL_ESCAPE = ['f', 'n', 'r', 't', 'v'],
       NON_PATTERN_CHARACTER = ['^', '$', '\\', '.', '*', '+', '?', '(', ')', '[', ']', '{', '}', '|'],
-      mode = MODE_RANGE_TOLERANT | MODE_CURLY_BRACKETS_VERBATIM;
+      mode;
 
   function reset() {
     pos = 0;
   }
 
   /**
-   * @param {Node} node Input node.
+   * @param {Object} node Input node.
    */
   function validate_range(node) {
-    if (node.type !== Node.T_RANGE) {
-      throw new Error('Range node required but found ' + node.type);
+    if (node.type !== re.T_RANGE) {
+      throw new Error('Range required but found ' + node.type);
     }
 
     var left = node.left,
         right = node.right;
 
-    if ((left.type === Node.T_CCE || right.type === Node.T__CCE) &&
-        !(mode & MODE_RANGE_STRICT)) {
+    if ((left.type === re.T_CCE || right.type === re.T_CCE) &&
+        !(mode & re.M_RANGE_STRICT)) {
 
-      if (right.type === Node.T_CCE && mode & MODE_RANGE_TOLERANT_NO_CCE_AT_END) {
+      if (right.type === re.T_CCE && mode & re.M_RANGE_TOLERANT_NO_CCE_AT_END) {
         throw new Error('Character class escape not allowed at end of range');
       }
 
       return;
     }
 
-    if (left.type !== Node.T_CHAR && left.type !== Node.T_CLASS_ESCAPE) {
+    if (left.type !== re.T_CHAR && left.type !== re.T_CLASS_ESCAPE) {
       throw new Error('Invalid left end of range. Found ' + node.left.type);
     }
 
-    if (right.type !== Node.T_CHAR && right.type !== Node.T_CLASS_ESCAPE) {
+    if (right.type !== re.T_CHAR && right.type !== re.T_CLASS_ESCAPE) {
       throw new Error('Invalid right end o range. Found ' + node.right.type);
     }
 
-    left = left.type === Node.T_CHAR ? left.value : left.left.value + '';
-    right = right.type === Node.T_CHAR ? right.value : right.left.value + '';
+    left = left.type === re.T_CHAR ? left.value : left.left.value + '';
+    right = right.type === re.T_CHAR ? right.value : right.left.value + '';
 
     if (left.charCodeAt(0) > right.charCodeAt(0)) {
       throw new Error('Range out of order in character class');
@@ -211,18 +82,16 @@ var re = (function() {
   /**
    * Pattern :: Disjunction
    *
-   * @return {Tree}
+   * @return {Object}
    */
   function parsePattern() {
-    var alternatives = parseDisjunction(),
-        tree;
+    var alternatives = parseDisjunction();
 
     if (pos < stream.length) {
       throw new Error('Cannot parse remaining characters: ' + stream.substr(pos));
     }
 
-    tree = new Tree(alternatives);
-    return tree;
+    return alternatives;
   };
 
   /**
@@ -230,7 +99,7 @@ var re = (function() {
    *    Alternative
    *    Alternative | Disjunction
    *
-   * @return {Node}
+   * @return {Object}
    */
   function parseDisjunction() {
     var alternatives = [];
@@ -243,7 +112,7 @@ var re = (function() {
     }
 
     return alternatives.reduceRight(function(prev, cur) {
-      return new Node(Node.T_OR, undefined, cur, prev);
+      return { type: re.T_OR, left: cur, right: prev };
     });
   }
 
@@ -252,7 +121,7 @@ var re = (function() {
    *    [empty]
    *    Alternative Term
    *
-   * @return {Node}
+   * @return {Object}
    */
   function parseAlternative() {
     var terms = [],
@@ -270,11 +139,11 @@ var re = (function() {
     };
 
     if (!terms.length) {
-      return new Node(Node.OP_EMPTY);
+      return { type: re.T_EMPTY };
     }
 
     return terms.reduceRight(function(prev, cur) {
-      return new Node(Node.T_CONCAT, undefined, cur, prev);
+      return { type: re.T_CONCAT, left: cur, right: prev };
     });
   }
 
@@ -284,7 +153,7 @@ var re = (function() {
    *    Atom
    *    Atom Quantifier
    *
-   * @return {?Node}
+   * @return {?Object}
    */
   function parseTerm() {
     var res = parseAssertion(),
@@ -298,7 +167,7 @@ var re = (function() {
       quantifier = parseQuantifier();
 
       if (quantifier !== null) {
-        return new Node(Node.T_REPEAT, undefined, res, quantifier);
+        return { type: re.T_REPEAT, left: res, right: quantifier };
       }
 
       return res;
@@ -312,14 +181,14 @@ var re = (function() {
    *    QuantifierPrefix
    *    QuantifierPrefix ?
    *
-   * @return {?Node}
+   * @return {?Object}
    */
   function parseQuantifier() {
     var prefix = parseQuantifierPrefix();
 
     if (prefix && lookAhead(1) === '?') {
       pos += 1;
-      prefix.value.greedy = false;
+      prefix.greedy = false;
     }
 
     return prefix;
@@ -334,22 +203,22 @@ var re = (function() {
    *    { DecimalDigist , }
    *    { DecimalDigits , DecimalDigits }
    *
-   * @return {?Node}
+   * @return {?Object}
    */
   function parseQuantifierPrefix() {
     var from, to;
 
     if (lookAhead(1) === '*') {
       pos += 1;
-      return new Node(Node.T_QUANTIFIER, {from: 0, to: Infinity, greedy: true});
+      return { type: re.T_QUANTIFIER, from: 0, to: Infinity, greedy: true };
     }
     else if (lookAhead(1) === '+') {
       pos += 1;
-      return new Node(Node.T_QUANTIFIER, {from: 1, to: Infinity, greedy: true});
+      return { type: re.T_QUANTIFIER, from: 1, to: Infinity, greedy: true };
     }
     else if (lookAhead(1) === '?') {
       pos += 1;
-      return new Node(Node.T_QUANTIFIER, {from: 0, to: 1, greedy: true});
+      return { type: re.T_QUANTIFIER, from: 0, to: 1, greedy: true };
     }
     else if (lookAhead(1) === '{') {
       pos += 1;
@@ -372,11 +241,7 @@ var re = (function() {
 
       if (lookAhead(1) === '}') {
         pos += 1;
-        return new Node(Node.T_QUANTIFIER, {
-          from: from,
-          to: to,
-          greedy: true
-        });
+        return { type: re.T_QUANTIFIER, from: from, to: to, greedy: true };
       }
       else {
         pos -= 1 + from.toString().length + (to === undefined ? 0 : isFinite(to) ? to.toString().length + 1 : 1);
@@ -441,40 +306,40 @@ var re = (function() {
    *    (?= Disjunction )
    *    (?! Disjunction )
    *
-   * @return {?Node}
+   * @return {?Object}
    */
   function parseAssertion() {
     var disjunction;
 
     if (lookAhead(1) === '^') {
       pos += 1;
-      return new Node(Node.T_ASSERT, '^');
+      return { type: re.T_ASSERT, value: '^' };
     }
     else if (lookAhead(1) === '$') {
       pos += 1;
-      return new Node(Node.T_ASSERT, '$');
+      return { type: re.T_ASSERT, value: '$' };
     }
     else if (lookAhead(2) === '\\b') {
       pos += 2;
-      return Node(Node.T_ASSERT, '\\b');
+      return { type: re.T_ASSERT, value: '\\b' };
     }
     else if (lookAhead(2) === '\\B') {
       pos += 2;
-      return Node(Node.T_ASSERT, '\\B');
+      return { type: re.T_ASSERT, value: '\\B' };
     }
     else if (lookAhead(3) === '(?=') {
       pos += 3;
       disjunction = parseDisjunction();
       assert(')');
       pos += 1;
-      return Node(Node.T_ASSERT, '?=');
+      return { type: re.T_ASSERT, value: '?=', match: disjunction };
     }
     else if (lookAhead(3) === '(?!') {
       pos += 3;
       disjunction = parseDisjunction();
       assert(')');
       pos += 1;
-      return Node(Node.T_ASSERT, '?!');
+      return { type: re.T_ASSERT, value: '?!', match: disjunction };
     }
 
     return null;
@@ -491,7 +356,7 @@ var re = (function() {
    * @return {boolean} true if input is pattern character, false otherwise.
    */
   function isPatternCharacter(character) {
-    if (mode & MODE_CURLY_BRACKETS_VERBATIM && (character === '{' || character === '}')) {
+    if (mode & re.M_CURLY_BRACKETS_VERBATIM && (character === '{' || character === '}')) {
       return true;
     }
 
@@ -507,7 +372,7 @@ var re = (function() {
    *    ( Disjunction )
    *    (?: Disjunction )
    *
-   * @return {?Node}
+   * @return {?Object}
    */
   function parseAtom() {
     var character,
@@ -517,25 +382,25 @@ var re = (function() {
     if (isPatternCharacter(lookAhead(1))) {
       character = lookAhead(1);
       pos += 1;
-      return new Node(Node.T_CHAR, character);
+      return { type: re.T_CHAR, value: character };
     }
     else if (lookAhead(1) === '.') {
       pos += 1;
-      return new Node(Node.T_DOT);
+      return { type: re.T_DOT };
     }
     else if (lookAhead(3) === '(?:') {
       pos += 3;
       disjunction = parseDisjunction();
       assert(')');
       pos += 1;
-      return new Node(Node.T_GROUP, false, disjunction);
+      return { type: re.T_GROUP, capturing: false, value: disjunction };
     }
     else if (lookAhead(1) === '(') {
       pos += 1;
       disjunction = parseDisjunction();
       assert(')');
       pos += 1;
-      return new Node(Node.T_GROUP, true, disjunction);
+      return { type: re.T_GROUP, capturing: true, value: disjunction };
     }
     else if (lookAhead(1) === '\\') {
       pos += 1;
@@ -551,7 +416,7 @@ var re = (function() {
    *    [ [lookahead ∉ {^}] ClassRanges ]
    *    [ ^ ClassRanges ]
    *
-   * @return {?Node}
+   * @return {?Object}
    */
   function parseCharacterClass() {
     var negated = false,  
@@ -568,7 +433,7 @@ var re = (function() {
       ranges = parseClassRanges(); 
       assert(']', 'Unterminated character class');
       pos += 1;
-      return new Node(Node.T_CHAR_CLASS, negated, ranges);
+      return { type: re.T_CHAR_CLASS, negated: negated, value: ranges };
     }
 
     return null;
@@ -589,7 +454,7 @@ var re = (function() {
    *    ClassAtomNoDash NonemptyClassRangesNoDash
    *    ClassAtomNoDash - ClassAtom ClassRanges
    *
-   * @return {?Node}
+   * @return {?Object}
    */
   function parseClassRanges() {
     var from,
@@ -602,7 +467,7 @@ var re = (function() {
     if (eos()) { return null; }
 
     if (lookAhead(1) === ']') {
-      return new Node(Node.T_EMPTY);
+      return { type: re.T_EMPTY };
     }
 
     from = parseClassAtom();
@@ -616,19 +481,17 @@ var re = (function() {
       to = parseClassAtom();
 
       if (to === null) {
-        return new Node(Node.T_CONCAT, undefined, from, new Node(Node.T_CHAR, '-'));
+        return { type: re.T_CONCAT, left: from, right: { type: re.T_CHAR, value: '-' } };
       }
 
       ranges = parseClassRanges();
+      range = { type: re.T_RANGE, from: from, to: to };
+      validate_range(range);
 
-      if (ranges !== null && ranges.type !== Node.T_EMPTY) {
-        range = new Node(Node.T_RANGE, undefined, from ,to);
-        validate_range(range);
-        return new Node(Node.T_CONCAT, range, ranges);
+      if (ranges !== null && ranges.type !== re.T_EMPTY) {
+        return { type: re.T_CONCAT, left: range, right: ranges };
       }
 
-      range = new Node(Node.T_RANGE, undefined, from, to);
-      validate_range(range);
       return range;
     }
     else {
@@ -640,7 +503,7 @@ var re = (function() {
         if (to === null) {
           break;
         }
-        else if (to.type === Node.T_CHAR && to.value === '-') {
+        else if (to.type === re.T_CHAR && to.value === '-') {
           if (lookAhead(1) === ']') {
             ranges.push(to);
             break;
@@ -649,7 +512,7 @@ var re = (function() {
             beforeLast = ranges.pop();
             last = to;
             to = parseClassAtom();
-            range = new Node(Node.T_RANGE, undefined, beforeLast, to);
+            range = { type: re.T_RANGE, from: beforeLast, to: to };
             validate_range(range);
             ranges.push(range);
 
@@ -669,7 +532,7 @@ var re = (function() {
         last = ranges.pop();
         beforeLast = ranges.pop();
 
-        ranges.push(new Node(Node.T_CONCAT, undefined, beforeLast, last)); 
+        ranges.push({ type: re.T_CONCAT, left: beforeLast, right: last });
       }
 
       return ranges[0]; 
@@ -688,7 +551,7 @@ var re = (function() {
    * SourceCharacter::
    *    any Unicode code unit
    *
-   * @return {?Node}
+   * @return {?Object}
    */
   function parseClassAtom() {
     var classEscape;
@@ -696,16 +559,16 @@ var re = (function() {
     if (eos()) { return null; }
 
     if (['\\', ']', '-'].indexOf(lookAhead(1)) === -1) {
-      return new Node(Node.T_CHAR, stream[pos++]);
+      return { type: re.T_CHAR, value: stream[pos++] };
     }
     else if (lookAhead(1) === '\\') {
       pos += 1;
       classEscape = parseClassEscape();
-      return new Node(Node.T_CLASS_ESCAPE, undefined, classEscape);
+      return { type: re.T_CLASS_ESCAPE, value: classEscape };
     }
     else if (lookAhead(1) === '-') {
       pos += 1;
-      return new Node(Node.T_CHAR, '-');
+      return { type: re.T_CHAR, value: '-' };
     }
 
     return null;
@@ -718,7 +581,7 @@ var re = (function() {
    *    CharacterEscape
    *    CharacterClassEscape
    *
-   * @return {Node}
+   * @return {Object}
    */
   function parseClassEscape() {
     var res = parseDecimalEscape();
@@ -727,7 +590,7 @@ var re = (function() {
 
     if (lookAhead(1) === 'b') {
       pos += 1;
-      return new Node(Node.T_CHAR, 'b');
+      return { type: re.T_CHAR, value: 'b' };
     }
 
     res = parseCharacterClassEscape();
@@ -743,7 +606,7 @@ var re = (function() {
    *    CharacterEscape 
    *    CharacterClassEscape
    *
-   * @return {?Node}
+   * @return {?Object}
    */
   function parseAtomEscape() {
     var res = parseCharacterClassEscape();
@@ -765,7 +628,7 @@ var re = (function() {
    *    UnicodeEscapeSequence
    *    IdentityEscape
    *
-   * @return {Node}
+   * @return {Object}
    */
   function parseCharacterEscape() {
     var res = parseControlEscape();
@@ -794,21 +657,21 @@ var re = (function() {
   }
 
   /**
-   * @return {Node}
+   * @return {Object}
    */
   function parseIdentityEscape() {
     if (pos === stream.length) {
       throw new Error('\\ at end of pattern');
     }
 
-    return new Node(Node.T_IDENTITY_ESCAPE, stream[pos++]);
+    return { type: re.T_IDENTITY_ESCAPE, value: stream[pos++] };
   }
 
   /**
    * HexEscapeSequence::
    *    x HexDigit HexDigit
    *
-   * @return {?Node}
+   * @return {?Object}
    */
   function parseHexEscapeSequence() {
     var first, second;
@@ -829,7 +692,7 @@ var re = (function() {
         return null;
       }
 
-      return new Node(Node.T_HEX_ESCAPE, first + second);
+      return { type: re.T_HEX_ESCAPE, value: first + second };
     }
 
     return null;
@@ -839,7 +702,7 @@ var re = (function() {
    * UnicodeEscapeSequence::
    *    u HexDigit HexDigit HexDigit HexDigit
    *
-   * @return {?Node}
+   * @return {?Object}
    */
   function parseUnicodeEscapeSequence() {
     var res, sequence = '', i;
@@ -858,7 +721,7 @@ var re = (function() {
         sequence += res;
       }
 
-      return new Node(Node.T_UNICODE_ESCAPE, sequence);
+      return { type: re.T_UNICODE_ESCAPE, value: sequence };
     }
 
     return null;
@@ -886,14 +749,14 @@ var re = (function() {
    *    a b c d e f g h i j k l m n o p q r s t u v w x y z
    *    A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
    *
-   * @return {?Node}
+   * @return {?Object}
    */
   function parseControlLetter() {
     var c = lookAhead(1);
 
     if (c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z') {
       pos += 1;
-      return new Node(Node.T_CONTROL_LETTER, c);
+      return { type: re.T_CONTROL_LETTER, value: c };
     }
 
     return null;
@@ -903,7 +766,7 @@ var re = (function() {
    * ControlEscape:: one of
    *    f n r t v
    *
-   * @return {?Node}
+   * @return {?Object}
    */
   function parseControlEscape() {
     var character;
@@ -911,7 +774,7 @@ var re = (function() {
     if (CONTROL_ESCAPE.indexOf(lookAhead(1)) !== -1) {
       character = lookAhead(1);
       pos += 1;
-      return new Node(Node.T_CONTROL_ESCAPE, character);
+      return { type: re.T_CONTROL_ESCAPE, value: character };
     }
 
     return null;
@@ -921,13 +784,13 @@ var re = (function() {
    * DecimalEscape::
    *    DecimalIntegerLiteral [lookahead not DecimalDigit]
    *
-   * @return {?Node}
+   * @return {?Object}
    */
   function parseDecimalEscape() {
     var res = parseDecimalIntegerLiteral();
 
     if (res !== null) {
-      return new Node(Node.T_DECIMAL_ESCAPE, res);
+      return { type: re.T_DECIMAL_ESCAPE, value: res };
     }
 
     return null;
@@ -968,28 +831,28 @@ var re = (function() {
    * CharacterClassEscape:: one of
    *    d D s S w W
    *
-   * @return {?Node}
+   * @return {?Object}
    */
   function parseCharacterClassEscape() {
     switch (lookAhead(1)) {
       case 'd':
         pos += 1;
-        return new Node(Node.T_CCE, Node.C_DIGIT);
+        return { type: re.T_CCE, value: re.C_DIGIT };
       case 'D':
         pos += 1;
-        return new Node(Node.T_CCE, Node.C_NON_DIGIT);
+        return { type: re.T_CCE, value: re.C_NON_DIGIT };
       case 's':
         pos += 1;
-        return new Node(Node.T_CCE, Node.C_WHITESPACE);
+        return { type: re.T_CCE, value: re.C_WHITESPACE };
       case 'S':
         pos += 1;
-        return new Node(Node.T_CCE, Node.C_NON_WHITESPACE);
+        return { type: re.T_CCE, value: re.C_NON_WHITESPACE };
       case 'w':
         pos += 1;
-        return new Node(Node.T_CCE, Node.C_WORD_CHAR);
+        return { type: re.T_CCE, value: re.C_WORD_CHAR };
       case 'W':
         pos += 1;
-        return new Node(Node.T_CCE, Node.C_NON_WORD_CHAR);
+        return { type: re.T_CCE, value: re.C_NON_WORD_CHAR };
       default:
         return null;
     }
@@ -1002,7 +865,7 @@ var re = (function() {
      * @type {Number}
      * @static
      */
-    MODE_RANGE_STRICT: MODE_RANGE_STRICT,
+    M_RANGE_STRICT: 1,
     /**
      * Some browsers (e.g. Chrome 19) accepts character class escapes in ranges like /[\d-b]/ matches
      * set {0,1, ... ,9, 'b', '-'}.
@@ -1010,7 +873,7 @@ var re = (function() {
      * @type {Number}
      * @static
      */
-    MODE_RANGE_TOLERANT: MODE_RANGE_TOLERANT,
+    M_RANGE_TOLERANT: 2,
     /**
      * Firefox accepts /[\d-b]/ but throws syntax error exception when encounters character class escape and the
      * end of range - /[a-\d]/.
@@ -1018,34 +881,50 @@ var re = (function() {
      * @type {Number}
      * @static
      */
-    MODE_RANGE_TOLERANT_NO_CCE_AT_END: MODE_RANGE_TOLERANT_NO_CCE_AT_END,
+    M_RANGE_TOLERANT_NO_CCE_AT_END: 4,
     /**
      * If quantifier cannot be parssed like /a{b/ then '{' will treated verbatim so regular expression is
      * equivalent to /a\{b/.
      * @type {Number}
      * @static
      */
-    MODE_CURLY_BRACKETS_VERBATIM: MODE_CURLY_BRACKETS_VERBATIM,
+    M_CURLY_BRACKETS_VERBATIM: 8,
+    // Node's types.
+    T_OR: 'OR',
+    T_CONCAT: 'CONCATENATION',
+    T_EMPTY: 'EMPTY',
+    T_CHAR: 'CHAR',
+    T_DOT: 'DOT',
+    T_GROUP: 'GROUP',
+    T_CCE: 'CHARACTER CLASS ESCAPE',
+    T_CLASS_ESCAPE: 'CLASS ESCAPE',
+    T_DECIMAL_ESCAPE: 'DECIMAL ESCAPE',
+    T_CHAR_ESCAPE: 'CHARACTER ESCAPE',
+    T_CONTROL_ESCAPE: 'CONTROL ESCAPE',
+    T_CONTROL_LETTER: 'CONTROL LETTER',
+    T_HEX_ESCAPE: 'HEX ESCAPE',
+    T_UNICODE_ESCAPE: 'UNICODE ESCAPE',
+    T_IDENTITY_ESCAPE: 'IDENTITY_ESCAPE',
+    T_ASSERT: 'ASSERT',
+    T_CHAR_CLASS: 'CHARACTER CLASS',
+    T_RANGE: 'RANGE',
+    T_REPEAT: 'REPEAT',
+    T_QUANTIFIER: 'QUANTIFIER',
+    // Character classes.
+    C_DIGIT: 'DIGIT',
+    C_NON_DIGIT: 'NON-DIGIT',
+    C_WHITESPACE: 'WHITESPACE',
+    C_NON_WHITESPACE: 'NON-WHITESPACE',
+    C_WORD_CHAR: 'WORD CHARACTER',
+    C_NON_WORD_CHAR: 'NON-WORD CHARACTER',
     /**
-     * @return {Number} current mode.
-     */
-    get mode() {
-      return mode;
-    },
-    /**
-     * @param {Number} m New mode.
-     */
-    set mode(m) {
-      mode = m;
-    },
-    Tree: Tree,
-    Node: Node,
-    /**
-     * Parses input stream
+     * Parses input stream and returns abstract syntax tree.
      * @param {string} s Input stream.
-     * @return {Tree}
+     * @param {number=} opt_mode Parsing mode.
+     * @return {Object}
      */
-    parse: function(s) {
+    parse: function(s, opt_mode) {
+      mode = opt_mode === undefined ? this.M_RANGE_TOLERANT | this.M_CURLY_BRACKETS_VERBATIM : opt_mode;
       reset();
       stream = s;
       return parsePattern(stream);
