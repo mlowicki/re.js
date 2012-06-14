@@ -23,36 +23,44 @@ var re = (function() {
   /**
    * @param {Object} node Input node.
    */
-  function validate_range(node) {
+  function validateRange(node) {
     if (node.type !== re.T_RANGE) {
       throw new Error('Range required but found ' + node.type);
     }
+    var from = node.from,
+        to = node.to,
+        escapes = [
+          re.T_CCE,
+          re.T_DECIMAL_ESCAPE,
+          re.T_CONTROL_ESCAPE,
+          re.T_CONTROL_LETTER,
+          re.T_HEX_ESCAPE,
+          re.T_UNICODE_ESCAPE,
+          re.T_IDENTITY_ESCAPE
+        ];
 
-    var left = node.left,
-        right = node.right;
-
-    if ((left.type === re.T_CCE || right.type === re.T_CCE) &&
+    if ((from.type === re.T_CCE || to.type === re.T_CCE) &&
         !(mode & re.M_RANGE_STRICT)) {
 
-      if (right.type === re.T_CCE && mode & re.M_RANGE_TOLERANT_NO_CCE_AT_END) {
+      if (to.type === re.T_CCE && mode & re.M_RANGE_TOLERANT_NO_CCE_AT_END) {
         throw new Error('Character class escape not allowed at end of range');
       }
 
       return;
     }
 
-    if (left.type !== re.T_CHAR && left.type !== re.T_CLASS_ESCAPE) {
-      throw new Error('Invalid left end of range. Found ' + node.left.type);
+    if (from.type !== re.T_CHAR && escapes.indexOf(from.type) === -1) {
+      throw new Error('Invalid left end of range. Found ' + node.from.type);
     }
 
-    if (right.type !== re.T_CHAR && right.type !== re.T_CLASS_ESCAPE) {
-      throw new Error('Invalid right end o range. Found ' + node.right.type);
+    if (to.type !== re.T_CHAR && escapes.indexOf(to.type) === -1) {
+      throw new Error('Invalid right end o range. Found ' + node.to.type);
     }
 
-    left = left.type === re.T_CHAR ? left.value : left.left.value + '';
-    right = right.type === re.T_CHAR ? right.value : right.left.value + '';
+    from = from.value + '';
+    to = to.value + '';
 
-    if (left.charCodeAt(0) > right.charCodeAt(0)) {
+    if (from.charCodeAt(0) > to.charCodeAt(0)) {
       throw new Error('Range out of order in character class');
     }
   }
@@ -486,7 +494,7 @@ var re = (function() {
 
       ranges = parseClassRanges();
       range = { type: re.T_RANGE, from: from, to: to };
-      validate_range(range);
+      validateRange(range);
 
       if (ranges !== null && ranges.type !== re.T_EMPTY) {
         return { type: re.T_CONCAT, left: range, right: ranges };
@@ -513,7 +521,7 @@ var re = (function() {
             last = to;
             to = parseClassAtom();
             range = { type: re.T_RANGE, from: beforeLast, to: to };
-            validate_range(range);
+            validateRange(range);
             ranges.push(range);
 
             if (lookAhead(1) !== ']') {
@@ -563,8 +571,7 @@ var re = (function() {
     }
     else if (lookAhead(1) === '\\') {
       pos += 1;
-      classEscape = parseClassEscape();
-      return { type: re.T_CLASS_ESCAPE, value: classEscape };
+      return parseClassEscape();
     }
     else if (lookAhead(1) === '-') {
       pos += 1;
@@ -590,7 +597,7 @@ var re = (function() {
 
     if (lookAhead(1) === 'b') {
       pos += 1;
-      return { type: re.T_CHAR, value: 'b' };
+      return { type: re.T_IDENTITY_ESCAPE, value: 'b' };
     }
 
     res = parseCharacterClassEscape();
@@ -897,9 +904,7 @@ var re = (function() {
     T_DOT: 'DOT',
     T_GROUP: 'GROUP',
     T_CCE: 'CHARACTER CLASS ESCAPE',
-    T_CLASS_ESCAPE: 'CLASS ESCAPE',
     T_DECIMAL_ESCAPE: 'DECIMAL ESCAPE',
-    T_CHAR_ESCAPE: 'CHARACTER ESCAPE',
     T_CONTROL_ESCAPE: 'CONTROL ESCAPE',
     T_CONTROL_LETTER: 'CONTROL LETTER',
     T_HEX_ESCAPE: 'HEX ESCAPE',
