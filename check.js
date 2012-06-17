@@ -9,6 +9,23 @@ var check = (function() {
    * @type {Element|undefined}
    */
   var out;
+  /**
+   * Tests' summary.
+   * @type {Element|undefined}
+   */
+  var summary,
+  /**
+   * Number of failed tests.
+   * @type {Number}
+   * @default {0}
+   */
+  numOfFails = 0,
+  /**
+   * Number of successful tests.
+   * @type {Number}
+   * @default {0}
+   */
+  numOfPasses = 0;
 
   /**
    * @param {*} value Input value.
@@ -21,15 +38,23 @@ var check = (function() {
   }
 
   /**
+   * Refresh tests' summary.
+   */
+  function updateSummary() {
+    summary.innerHTML = numOfPasses + '/' + (numOfFails + numOfPasses) + ' passed';
+  }
+
+  /**
    * Creates message about successful test case.
    * @param {string} title Test case's title.
    */
   function success(title) {
-    assert(out !== undefined, 'Output element not set');
     var box = document.createElement('div');
     box.className = 'success';
     box.innerHTML = title;
     out.appendChild(box);
+    numOfPasses += 1;
+    updateSummary();
   }
 
   /**
@@ -37,11 +62,12 @@ var check = (function() {
    * @param {string} title Test case's title.
    */
   function failure(title) {
-    assert(out !== undefined, 'Output element not set');
     var box = document.createElement('div');
     box.className = 'failure';
     box.innerHTML = title;
     out.appendChild(box);
+    numOfFails += 1;
+    updateSummary();
   }
 
   /**
@@ -98,6 +124,10 @@ var check = (function() {
      */
     init: function(output) {
       out = output;
+      summary = document.createElement('div');
+      summary.className = 'summary';
+      numOfPasses = numOfFails = 0;
+      out.appendChild(summary);
     },
     /**
      * Check is passed value equals (===) to true.
@@ -105,6 +135,7 @@ var check = (function() {
      * @param {*} result Tested value.
      */
     true: function(title, result) {
+      assert(out !== undefined, 'Not initialized');
       result === true ? success(title) : failure(title);
     },
     /**
@@ -114,6 +145,7 @@ var check = (function() {
      * @param {*} b Second input.
      */
     eq: function(title, a, b) {
+      assert(out !== undefined, 'Not initialized');
       areEqual(a, b) ? success(title) : failure(title);
     }
   };

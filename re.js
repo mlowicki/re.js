@@ -13,7 +13,7 @@ var re = (function() {
       stream, // Input stream.
       HEX_DIGIT = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f', 'A', 'B', 'C', 'D', 'E', 'F',],
       CONTROL_ESCAPE = ['f', 'n', 'r', 't', 'v'],
-      NON_PATTERN_CHARACTER = ['^', '$', '\\', '.', '*', '+', '?', '(', ')', '[', ']', '{', '}', '|'],
+      NON_PATTERN_CHAR = ['^', '$', '\\', '.', '*', '+', '?', '(', ')', '[', ']', '{', '}', '|'],
       mode;
 
   function reset() {
@@ -175,7 +175,7 @@ var re = (function() {
       quantifier = parseQuantifier();
 
       if (quantifier !== null) {
-        return { type: re.T_REPEAT, left: res, right: quantifier };
+        return { type: re.T_REPEAT, atom: res, quantifier: quantifier };
       }
 
       return res;
@@ -218,15 +218,15 @@ var re = (function() {
 
     if (lookAhead(1) === '*') {
       pos += 1;
-      return { type: re.T_QUANTIFIER, from: 0, to: Infinity, greedy: true };
+      return { from: 0, to: Infinity, greedy: true };
     }
     else if (lookAhead(1) === '+') {
       pos += 1;
-      return { type: re.T_QUANTIFIER, from: 1, to: Infinity, greedy: true };
+      return { from: 1, to: Infinity, greedy: true };
     }
     else if (lookAhead(1) === '?') {
       pos += 1;
-      return { type: re.T_QUANTIFIER, from: 0, to: 1, greedy: true };
+      return { from: 0, to: 1, greedy: true };
     }
     else if (lookAhead(1) === '{') {
       pos += 1;
@@ -249,7 +249,7 @@ var re = (function() {
 
       if (lookAhead(1) === '}') {
         pos += 1;
-        return { type: re.T_QUANTIFIER, from: from, to: to, greedy: true };
+        return { from: from, to: to, greedy: true };
       }
       else {
         pos -= 1 + from.toString().length + (to === undefined ? 0 : isFinite(to) ? to.toString().length + 1 : 1);
@@ -364,11 +364,11 @@ var re = (function() {
    * @return {boolean} true if input is pattern character, false otherwise.
    */
   function isPatternCharacter(character) {
-    if (mode & re.M_CURLY_BRACKETS_VERBATIM && (character === '{' || character === '}')) {
-      return true;
+    if (mode & re.M_SPECIAL_CHAR_VERBATIM) {
+      return ['^', '$', '\\', '.', '*', '+', '?', '(', ')', '[', '|'].indexOf(character) === -1;
     }
 
-    return NON_PATTERN_CHARACTER.indexOf(character) == -1; 
+    return NON_PATTERN_CHAR.indexOf(character) === -1;
   }
 
   /**
@@ -384,39 +384,42 @@ var re = (function() {
    */
   function parseAtom() {
     var character,
-        disjunction,
-        atomEscape;
+        match;
+
+    if (lookAhead(1) === '.') {
+      pos += 1;
+      return { type: re.T_DOT };
+    }
+    else if (lookAhead(3) === '(?:') {
+      pos += 3;
+      match = parseDisjunction();
+      assert(')');
+      pos += 1;
+      return { type: re.T_GROUP, capturing: false, value: match };
+    }
+    else if (lookAhead(1) === '(') {
+      pos += 1;
+      match = parseDisjunction();
+      assert(')');
+      pos += 1;
+      return { type: re.T_GROUP, capturing: true, value: match };
+    }
+    else if (lookAhead(1) === '\\') {
+      pos += 1;
+      return parseAtomEscape();
+    }
+    else if (lookAhead(1) === '[') {
+      pos += 1;
+      return parseCharacterClass();
+    }
 
     if (isPatternCharacter(lookAhead(1))) {
       character = lookAhead(1);
       pos += 1;
       return { type: re.T_CHAR, value: character };
     }
-    else if (lookAhead(1) === '.') {
-      pos += 1;
-      return { type: re.T_DOT };
-    }
-    else if (lookAhead(3) === '(?:') {
-      pos += 3;
-      disjunction = parseDisjunction();
-      assert(')');
-      pos += 1;
-      return { type: re.T_GROUP, capturing: false, value: disjunction };
-    }
-    else if (lookAhead(1) === '(') {
-      pos += 1;
-      disjunction = parseDisjunction();
-      assert(')');
-      pos += 1;
-      return { type: re.T_GROUP, capturing: true, value: disjunction };
-    }
-    else if (lookAhead(1) === '\\') {
-      pos += 1;
-      atomEscape = parseAtomEscape();
-      return atomEscape;
-    }
 
-    return parseCharacterClass();
+    return null;
   }
 
   /**
@@ -424,27 +427,21 @@ var re = (function() {
    *    [ [lookahead ∉ {^}] ClassRanges ]
    *    [ ^ ClassRanges ]
    *
-   * @return {?Object}
+   * @return {Object}
    */
   function parseCharacterClass() {
     var negated = false,  
         ranges;
 
-    if (lookAhead(1) === '[') {
+    if (lookAhead(1) === '^') {
       pos += 1;
-
-      if (lookAhead(1) === '^') {
-        pos += 1;
-        negated = true;
-      }
-
-      ranges = parseClassRanges(); 
-      assert(']', 'Unterminated character class');
-      pos += 1;
-      return { type: re.T_CHAR_CLASS, negated: negated, value: ranges };
+      negated = true;
     }
 
-    return null;
+    ranges = parseClassRanges();
+    assert(']', 'Unterminated character class');
+    pos += 1;
+    return { type: re.T_CHAR_CLASS, negated: negated, value: ranges };
   };
 
   /**
@@ -890,12 +887,11 @@ var re = (function() {
      */
     M_RANGE_TOLERANT_NO_CCE_AT_END: 4,
     /**
-     * If quantifier cannot be parssed like /a{b/ then '{' will treated verbatim so regular expression is
-     * equivalent to /a\{b/.
+     * Some special character - '{', '}', ']' can be treated verbatim.
+     * cannot be fully parsed.
      * @type {Number}
-     * @static
      */
-    M_CURLY_BRACKETS_VERBATIM: 8,
+    M_SPECIAL_CHAR_VERBATIM: 8,
     // Node's types.
     T_OR: 'OR',
     T_CONCAT: 'CONCATENATION',
@@ -914,7 +910,6 @@ var re = (function() {
     T_CHAR_CLASS: 'CHARACTER CLASS',
     T_RANGE: 'RANGE',
     T_REPEAT: 'REPEAT',
-    T_QUANTIFIER: 'QUANTIFIER',
     // Character classes.
     C_DIGIT: 'DIGIT',
     C_NON_DIGIT: 'NON-DIGIT',
@@ -929,7 +924,7 @@ var re = (function() {
      * @return {Object}
      */
     parse: function(s, opt_mode) {
-      mode = opt_mode === undefined ? this.M_RANGE_TOLERANT | this.M_CURLY_BRACKETS_VERBATIM : opt_mode;
+      mode = opt_mode === undefined ? this.M_RANGE_TOLERANT | this.M_SPECIAL_CHAR_VERBATIM : opt_mode;
       reset();
       stream = s;
       return parsePattern(stream);
