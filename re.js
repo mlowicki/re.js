@@ -876,8 +876,7 @@ var re = (function() {
 
   return {
     /**
-     * According to ES's grammar, start and end of range must be evaluated to single character.
-     * http://referenceerror.com/class-ranges-with-character-class-escape/
+     * Exact ES's grammar rules.
      * @type {Number}
      * @static
      */
