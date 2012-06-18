@@ -352,14 +352,14 @@ var re = (function() {
       disjunction = parseDisjunction();
       assert(')');
       pos += 1;
-      return { type: re.T_ASSERT, value: '?=', match: disjunction };
+      return { type: re.T_ASSERT, value: '?=', tester: disjunction };
     }
     else if (lookAhead(3) === '(?!') {
       pos += 3;
       disjunction = parseDisjunction();
       assert(')');
       pos += 1;
-      return { type: re.T_ASSERT, value: '?!', match: disjunction };
+      return { type: re.T_ASSERT, value: '?!', tester: disjunction };
     }
 
     return null;
