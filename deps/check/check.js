@@ -147,6 +147,22 @@ var check = (function() {
     eq: function(title, a, b) {
       assert(out !== undefined, 'Not initialized');
       areEqual(a, b) ? success(title) : failure(title);
+    },
+    /**
+     * @param {string} title Test case's title.
+     * @param {Function} fn Function to test.
+     * @param {Function} exc Exception's constructor function.
+     * @param {string} excMsg Exception's message.
+     */
+    throws: function(title, fn, exc, excMsg) {
+      try {
+        fn();
+      }
+      catch (e) {
+        e instanceof exc && e.message === excMsg ? success(title) : failure(title);
+        return;
+      }
+      failure(title);
     }
   };
 })();

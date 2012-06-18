@@ -25,7 +25,7 @@ var re = (function() {
    */
   function validateQuantifier(obj) {
     if (isFinite(obj.to) && obj.from > obj.to) {
-      throw new Error('Number out of order in quantifier');
+      throw new Error('Numbers out of order in quantifier');
     }
   }
 
