@@ -6,7 +6,7 @@ Parser for JavaScript regular expressions.
 Usage
 =====
 
-    re.parse('abc');
+<code>re.parse('abc');</code>
 
 Returns:
 
@@ -20,8 +20,7 @@ Returns:
         }
     };
 
-
-    re.parse('a{1,3}');
+<code>re.parse('a{1,3}');</code>
 
 Returns:
 
@@ -33,7 +32,7 @@ Returns:
 
 
 Modes
-=====
+===========
 
 * re.M\_RANGE\_STRICT
 
