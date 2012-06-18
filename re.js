@@ -21,6 +21,15 @@ var re = (function() {
   }
 
   /**
+   * @param {Object} Quantifier's object.
+   */
+  function validateQuantifier(obj) {
+    if (isFinite(obj.to) && obj.from > obj.to) {
+      throw new Error('Number out of order in quantifier');
+    }
+  }
+
+  /**
    * @param {Object} node Input node.
    */
   function validateRange(node) {
@@ -59,7 +68,6 @@ var re = (function() {
 
     from = from.value + '';
     to = to.value + '';
-
     if (from.charCodeAt(0) > to.charCodeAt(0)) {
       throw new Error('Range out of order in character class');
     }
@@ -214,19 +222,19 @@ var re = (function() {
    * @return {?Object}
    */
   function parseQuantifierPrefix() {
-    var from, to;
+    var from, to, quantifier;
 
     if (lookAhead(1) === '*') {
       pos += 1;
-      return { from: 0, to: Infinity, greedy: true };
+      quantifier = { from: 0, to: Infinity, greedy: true };
     }
     else if (lookAhead(1) === '+') {
       pos += 1;
-      return { from: 1, to: Infinity, greedy: true };
+      quantifier = { from: 1, to: Infinity, greedy: true };
     }
     else if (lookAhead(1) === '?') {
       pos += 1;
-      return { from: 0, to: 1, greedy: true };
+      quantifier = { from: 0, to: 1, greedy: true };
     }
     else if (lookAhead(1) === '{') {
       pos += 1;
@@ -249,15 +257,18 @@ var re = (function() {
 
       if (lookAhead(1) === '}') {
         pos += 1;
-        return { from: from, to: to, greedy: true };
+        quantifier = { from: from, to: to, greedy: true };
       }
       else {
         pos -= 1 + from.toString().length + (to === undefined ? 0 : isFinite(to) ? to.toString().length + 1 : 1);
         return null;
       }
     }
+    else {
+      return null;
+    }
 
-    return null;
+    validateQuantifier(quantifier);
   }
 
   /**
