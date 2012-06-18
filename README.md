@@ -48,4 +48,4 @@ Modes
 
 * re.M\_SPECIAL\_CHAR\_VERBATIM
 
-  Some special character - '{', '}', ']' can be treated verbatim if cannot be parsed as part of quantifier or character class.
+  Some special character - '{', '}', ']' can be treated verbatim if cannot be parsed as part of quantifier or character class. [More info](http://referenceerror.com/special-characters-treated-verbatim-in-regexp/)
