@@ -269,6 +269,7 @@ var re = (function() {
     }
 
     validateQuantifier(quantifier);
+    return quantifier;
   }
 
   /**
