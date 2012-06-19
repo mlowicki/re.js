@@ -1,5 +1,18 @@
-check.eq('empty', re.parse(''), {type: re.T_EMPTY});
-check.eq('single character', re.parse('a'), {type: re.T_CHAR, value: 'a'});
+check.eq(
+  'empty',
+  re.parse(''),
+  {type: re.T_EMPTY}
+);
+check.eq(
+  'a',
+  re.parse('a'),
+  {type: re.T_CHAR, value: 'a'}
+);
+check.eq(
+  '#',
+  re.parse('#'),
+  {type: re.T_CHAR, value: '#'}
+);
 check.eq(
   'ab',
   re.parse('ab'),

@@ -135,6 +135,6 @@ check.eq(
 check.throws(
   'a{2,1}',
   function() { re.parse('a{2,1}'); },
-  Error,
+  SyntaxError,
   'Numbers out of order in quantifier'
 );

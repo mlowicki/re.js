@@ -159,7 +159,7 @@ var check = (function() {
         fn();
       }
       catch (e) {
-        e instanceof exc && e.message === excMsg ? success(title) : failure(title);
+        e.constructor === exc && e.message === excMsg ? success(title) : failure(title);
         return;
       }
       failure(title);

@@ -25,7 +25,7 @@ var re = (function() {
    */
   function validateQuantifier(obj) {
     if (isFinite(obj.to) && obj.from > obj.to) {
-      throw new Error('Numbers out of order in quantifier');
+      throw new SyntaxError('Numbers out of order in quantifier');
     }
   }
 
@@ -34,7 +34,7 @@ var re = (function() {
    */
   function validateRange(node) {
     if (node.type !== re.T_RANGE) {
-      throw new Error('Range required but found ' + node.type);
+      throw new SyntaxError('Range required but found ' + node.type);
     }
     var from = node.from,
         to = node.to,
@@ -52,24 +52,24 @@ var re = (function() {
         !(mode & re.M_RANGE_STRICT)) {
 
       if (to.type === re.T_CCE && mode & re.M_RANGE_TOLERANT_NO_CCE_AT_END) {
-        throw new Error('Character class escape not allowed at end of range');
+        throw new SyntaxError('Character class escape not allowed at end of range');
       }
 
       return;
     }
 
     if (from.type !== re.T_CHAR && escapes.indexOf(from.type) === -1) {
-      throw new Error('Invalid left end of range. Found ' + node.from.type);
+      throw new SyntaxError('Invalid left end of range. Found ' + node.from.type);
     }
 
     if (to.type !== re.T_CHAR && escapes.indexOf(to.type) === -1) {
-      throw new Error('Invalid right end o range. Found ' + node.to.type);
+      throw new SyntaxError('Invalid right end o range. Found ' + node.to.type);
     }
 
     from = from.value + '';
     to = to.value + '';
     if (from.charCodeAt(0) > to.charCodeAt(0)) {
-      throw new Error('Range out of order in character class');
+      throw new SyntaxError('Range out of order in character class');
     }
   }
 
@@ -91,7 +91,7 @@ var re = (function() {
             (pos < stream.length ? "'" + stream[pos] + "'" : 'end of stream');
       }
 
-      throw new Error(message);
+      throw new SyntaxError(message);
     }
   }
 
@@ -104,7 +104,7 @@ var re = (function() {
     var alternatives = parseDisjunction();
 
     if (pos < stream.length) {
-      throw new Error('Cannot parse remaining characters: ' + stream.substr(pos));
+      throw new SyntaxError('Cannot parse remaining characters: ' + stream.substr(pos));
     }
 
     return alternatives;
@@ -677,7 +677,7 @@ var re = (function() {
    */
   function parseIdentityEscape() {
     if (pos === stream.length) {
-      throw new Error('\\ at end of pattern');
+      throw new SyntaxError('\\ at end of pattern');
     }
 
     return { type: re.T_IDENTITY_ESCAPE, value: stream[pos++] };
