@@ -19,9 +19,9 @@ check.eq(
   '(a)',
   re.parse('(a)'),
   {type: re.T_GROUP, capturing: true, value: {type: re.T_CHAR, value: 'a'}}
-)
+);
 check.eq(
   '(?:a)',
   re.parse('(?:a)'),
   {type: re.T_GROUP, capturing: false, value: {type: re.T_CHAR, value: 'a'}}
-)
+);

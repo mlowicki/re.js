@@ -836,7 +836,7 @@ var re = (function() {
         return head;
       }
       else {
-        return Number(head.toString() + tail.value.toString());
+        return Number(head.toString() + tail.toString());
       }
     }
 
