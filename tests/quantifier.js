@@ -1,4 +1,4 @@
-// Quantifiers
+check.group('Quantifiers');
 check.eq(
   'a*',
   re.parse('a*'),

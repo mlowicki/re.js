@@ -1,3 +1,4 @@
+check.group('Quirks');
 check.eq(
   '"{" treated verbatim',
   re.parse('{'),

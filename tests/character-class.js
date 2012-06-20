@@ -1,3 +1,4 @@
+check.group('Character class');
 check.eq(
   '[a]',
   re.parse('[a]'),

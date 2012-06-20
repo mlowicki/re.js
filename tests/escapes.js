@@ -1,3 +1,4 @@
+check.group('Escapes');
 check.eq(
   '\\ca',
   re.parse('\\ca'),

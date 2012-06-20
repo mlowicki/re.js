@@ -1,3 +1,4 @@
+check.group('Dot');
 check.eq(
   '.',
   re.parse('.'),

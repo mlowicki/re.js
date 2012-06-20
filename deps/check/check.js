@@ -42,6 +42,7 @@ var check = (function() {
    */
   function updateSummary() {
     summary.innerHTML = numOfPasses + '/' + (numOfFails + numOfPasses) + ' passed';
+    numOfFails && summary.classList.add('failed');
   }
 
   /**
@@ -68,6 +69,17 @@ var check = (function() {
     out.appendChild(box);
     numOfFails += 1;
     updateSummary();
+  }
+
+  /**
+   * Shows information about current group.
+   * @param {string} name Group's name.
+   */
+  function group(name) {
+    var el = document.createElement('h2');
+    el.className = 'group';
+    el.innerHTML = name;
+    out.appendChild(el);
   }
 
   /**
@@ -118,6 +130,13 @@ var check = (function() {
   }
 
   return {
+    /**
+     * Set current group of tests.
+     * @param {string} name Group's name.
+     */
+    group: function(name) {
+      group(name);
+    },
     /**
      * Initializer.
      * @param {Element} output Output element.

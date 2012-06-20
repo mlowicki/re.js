@@ -1,6 +1,7 @@
 .success,
 .failure,
-.summary {
+.summary,
+.group {
   border-width: 1px;
   border-style: solid;
   border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
@@ -11,20 +12,27 @@
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
-.success {
+.summary {
+  font-size: 2em;
+}
+
+.success,
+.summary {
   background-color: #5BB75B;
   background-image: linear-gradient(top, #62C462, #51A351);
   background-image: -webkit-linear-gradient(top, #62C462, #51A351);
 }
 
-.failure {
+.failure,
+.summary.failed {
   background-color: #DA4F49;
   background-image: -webkit-linear-gradient(top, #EE5F5B, #BD362F);
   background-image: linear-gradient(top, #EE5F5B, #BD362F);
 }
 
-.summary {
-  background-color: #49AFCD;
-  background-image: linear-gradient(top, #5BC0DE, #2F96B4);
-  background-image: -webkit-linear-gradient(top, #5BC0DE, #2F96B4);
+.group {
+  background-color: whiteSmoke;
+  background-image: linear-gradient(top, white, #E6E6E6);
+  background-image: -webkit-linear-gradient(top, white, #E6E6E6);
+  color: #333;
 }

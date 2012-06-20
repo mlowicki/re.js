@@ -1,3 +1,4 @@
+check.group('Assertion');
 check.eq(
   '^',
   re.parse('^'),

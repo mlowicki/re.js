@@ -1,3 +1,4 @@
+check.group('General');
 check.eq(
   'empty',
   re.parse(''),
