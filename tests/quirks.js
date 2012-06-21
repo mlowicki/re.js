@@ -1,15 +1,14 @@
-check.group('Quirks');
-check.eq(
+test.eq(
   '"{" treated verbatim',
   re.parse('{'),
   {type: re.T_CHAR, value: '{'}
 );
-check.eq(
+test.eq(
   '"}" treated verbatim',
   re.parse('}'),
   {type: re.T_CHAR, value: '}'}
 );
-check.eq(
+test.eq(
   '"]" treated verbatim',
   re.parse(']'),
   {type: re.T_CHAR, value: ']'}

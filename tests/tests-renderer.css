@@ -1,0 +1,16 @@
+body {
+  padding: 10px;
+}
+
+table tr td:first-child {
+  width: 100%;
+}
+
+.summary {
+  text-align: center;
+}
+
+button.close {
+  border: none;
+  background: none;
+}

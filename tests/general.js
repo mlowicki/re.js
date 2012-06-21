@@ -1,40 +1,39 @@
-check.group('General');
-check.eq(
+test.eq(
   'empty',
   re.parse(''),
   {type: re.T_EMPTY}
 );
-check.eq(
+test.eq(
   'a',
   re.parse('a'),
   {type: re.T_CHAR, value: 'a'}
 );
-check.eq(
+test.eq(
   '#',
   re.parse('#'),
   {type: re.T_CHAR, value: '#'}
 );
-check.eq(
+test.eq(
   'ab',
   re.parse('ab'),
   {type: re.T_CONCAT, left: {type: re.T_CHAR, value: 'a'}, right: {type: re.T_CHAR, value: 'b'}}
 );
-check.eq(
+test.eq(
   '|',
   re.parse('|'),
   {type: re.T_OR, left: {type: re.T_EMPTY}, right: {type: re.T_EMPTY}}
 );
-check.eq(
+test.eq(
   'a|b',
   re.parse('a|b'),
   {type: re.T_OR, left: {type: re.T_CHAR, value: 'a'}, right: {type: re.T_CHAR, value: 'b'}}
 );
-check.eq(
+test.eq(
   '(a)',
   re.parse('(a)'),
   {type: re.T_GROUP, capturing: true, value: {type: re.T_CHAR, value: 'a'}}
 );
-check.eq(
+test.eq(
   '(?:a)',
   re.parse('(?:a)'),
   {type: re.T_GROUP, capturing: false, value: {type: re.T_CHAR, value: 'a'}}

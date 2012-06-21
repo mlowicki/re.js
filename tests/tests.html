@@ -1,13 +1,18 @@
 <!doctype html>
 <html>
 <head>
-  <link rel="stylesheet" href="../deps/check/check.css">
-  <link rel="stylesheet" href="../deps/reset.css">
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="tests-renderer.css">
+  <link rel="stylesheet" href="../deps/bootstrap/css/bootstrap.css">
 </head>
 <body>
-  <script src="../deps/check/check.js"></script>
+  <script src="../deps/jquery-1.7.1.js"></script>
+  <script src="../deps/bootstrap/js/bootstrap-modal.js"></script>
+  <script src="../../test.js/test.js"></script>
+  <script src="tests-renderer.js"></script>
   <script>
-    check.init(document.body); 
+    var renderer = new TestsRenderer(document.body);
+    test.init(renderer);
   </script>
   <script src="../re.js"></script>
   <script src="general.js"></script> 

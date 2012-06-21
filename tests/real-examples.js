@@ -1,5 +1,4 @@
-check.group('Real examples');
-check.eq(
+test.eq(
   'Escape regexp special characters',
   re.parse('[\\-\\[\\]\\/\\{\\}\\(\\)\\*\\+\\?\\.\\\\\\^\\$\\|]'),
   {
