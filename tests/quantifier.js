@@ -1,32 +1,56 @@
 test.eq(
   'a*',
   re.parse('a*'),
-  {type: re.T_REPEAT, atom: {type: re.T_CHAR, value: 'a'}, quantifier: {from: 0, to: Infinity, greedy: true}}
+  {
+    type: re.T_REPEAT,
+    atom: {type: re.T_CHAR, value: 'a'},
+    quantifier: {from: 0, to: Infinity, greedy: true, special: true}
+  }
 );
 test.eq(
   'a*?',
   re.parse('a*?'),
-  {type: re.T_REPEAT, atom: {type: re.T_CHAR, value: 'a'}, quantifier: {from: 0, to: Infinity, greedy: false}}
+  {
+    type: re.T_REPEAT,
+    atom: {type: re.T_CHAR, value: 'a'},
+    quantifier: {from: 0, to: Infinity, greedy: false, special: true}
+  }
 );
 test.eq(
   'a+',
   re.parse('a+'),
-  {type: re.T_REPEAT, atom: {type: re.T_CHAR, value: 'a'}, quantifier: {from: 1, to: Infinity, greedy: true}}
+  {
+    type: re.T_REPEAT,
+    atom: {type: re.T_CHAR, value: 'a'},
+    quantifier: {from: 1, to: Infinity, greedy: true, special: true}
+  }
 );
 test.eq(
   'a+?',
   re.parse('a+?'),
-  {type: re.T_REPEAT, atom: {type: re.T_CHAR, value: 'a'}, quantifier: {from: 1, to: Infinity, greedy: false}}
+  {
+    type: re.T_REPEAT,
+    atom: {type: re.T_CHAR, value: 'a'},
+    quantifier: {from: 1, to: Infinity, greedy: false, special: true}
+  }
 );
 test.eq(
   'a?',
   re.parse('a?'),
-  {type: re.T_REPEAT, atom: {type: re.T_CHAR, value: 'a'}, quantifier: {from: 0, to: 1, greedy: true}}
+  {
+    type: re.T_REPEAT,
+    atom: {type: re.T_CHAR, value: 'a'},
+    quantifier: {from: 0, to: 1, greedy: true, special: true}
+  }
 );
 test.eq(
   'a??',
   re.parse('a??'),
-  {type: re.T_REPEAT, atom: {type: re.T_CHAR, value: 'a'}, quantifier: {from: 0, to: 1, greedy: false}}
+  {
+    type: re.T_REPEAT,
+    atom: {type: re.T_CHAR, value: 'a'},
+    quantifier: {from: 0, to: 1, greedy: false, special: true}
+  }
 );
 test.eq(
   'a{2}',

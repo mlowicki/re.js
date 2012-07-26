@@ -11,7 +11,7 @@ var re = (function() {
 
   var pos, // Current position in input stream.
       stream, // Input stream.
-      HEX_DIGIT = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f', 'A', 'B', 'C', 'D', 'E', 'F',],
+      HEX_DIGIT = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f', 'A', 'B', 'C', 'D', 'E', 'F'],
       CONTROL_ESCAPE = ['f', 'n', 'r', 't', 'v'],
       NON_PATTERN_CHAR = ['^', '$', '\\', '.', '*', '+', '?', '(', ')', '[', ']', '{', '}', '|'],
       mode;
@@ -226,15 +226,15 @@ var re = (function() {
 
     if (lookAhead(1) === '*') {
       pos += 1;
-      quantifier = { from: 0, to: Infinity, greedy: true };
+      quantifier = { from: 0, to: Infinity, greedy: true, special: true };
     }
     else if (lookAhead(1) === '+') {
       pos += 1;
-      quantifier = { from: 1, to: Infinity, greedy: true };
+      quantifier = { from: 1, to: Infinity, greedy: true, special: true };
     }
     else if (lookAhead(1) === '?') {
       pos += 1;
-      quantifier = { from: 0, to: 1, greedy: true };
+      quantifier = { from: 0, to: 1, greedy: true, special: true };
     }
     else if (lookAhead(1) === '{') {
       pos += 1;
@@ -874,6 +874,134 @@ var re = (function() {
     }
   }
 
+  /**
+   * @param {Object} ast Abstract syntax tree.
+   * @return {string} String representation of abstract syntax tree.
+   */
+  function astToString(ast) {
+    var res = '';
+
+    switch(ast.type) {
+      case re.T_OR:
+        res += astToString(ast.left);
+        res += '|';
+        res += astToString(ast.right);
+        break;
+      case re.T_CONCAT:
+        res += astToString(ast.left);
+        res += astToString(ast.right);
+        break;
+      case re.T_EMPTY:
+        break;
+      case re.T_CHAR:
+        res += ast.value;
+        break;
+      case re.T_DOT:
+        res += '.';
+        break;
+      case re.T_GROUP:
+        res += '(';
+        !ast.capturing && (res += '?:');
+        res += astToString(ast.value, ast);
+        res += ')';
+        break;
+      case re.T_CCE:
+        res += '\\';
+        switch (ast.value) {
+          case re.C_DIGIT:
+            res += 'd';
+            break;
+          case re.C_NON_DIGIT:
+            res += 'D';
+            break;
+          case re.C_WHITESPACE:
+            res += 's';
+            break;
+          case re.C_NON_WHITESPACE:
+            res += 'S';
+            break;
+          case re.C_WORD_CHAR:
+            res += 'w';
+            break;
+          case re.C_NON_WORD_CHAR:
+            res += 'W';
+            break;
+          default:
+            throw new Error('Unsupported value of character class escape ' + ast.value);
+        }
+        break;
+      case re.T_DECIMAL_ESCAPE:
+      case re.T_CONTROL_ESCAPE:
+      case re.T_IDENTITY_ESCAPE:
+        res += '\\' + ast.value;
+        break;
+      case re.T_CONTROL_LETTER:
+        res += '\\c' + ast.value;
+        break;
+      case re.T_HEX_ESCAPE:
+        res += '\\x' + ast.value;
+        break;
+      case re.T_UNICODE_ESCAPE:
+        res += '\\u' + ast.value;
+        break;
+      case re.T_ASSERT:
+        if (ast.value === '?!') {
+          res += '(?!';
+          res += astToString(ast.tester, ast);
+          res += ')';
+        }
+        else if (ast.value === '?=') {
+          res += '(?=';
+          res += astToString(ast.tester, ast);
+          res += ')';
+        }
+        else {
+          res += ast.value;
+        }
+        break;
+      case re.T_CHAR_CLASS:
+        res += '[';
+        ast.negated && (res += '^');
+        res += astToString(ast.value, ast);
+        res += ']';
+        break;
+      case re.T_RANGE:
+        res += astToString(ast.from, ast);
+        res += '-';
+        res += astToString(ast.to, ast);
+        break;
+      case re.T_REPEAT:
+        res += astToString(ast.atom);
+        var quantifier = ast.quantifier;
+
+        if (quantifier.special) {
+          quantifier.from === 0 && quantifier.to === 1 ?
+            res += '?' :
+            quantifier.from === 0 ?
+              res += '*' :
+              res += '+';
+        }
+        else {
+          res += '{';
+          res += quantifier.from;
+
+          if (quantifier.to !== undefined) {
+            res += ',';
+            isFinite(quantifier.to) && (res += quantifier.to);
+          }
+
+          res += '}';
+        }
+
+        !quantifier.greedy && (res += '?');
+        break;
+      default:
+        throw new Error('Unsupported node\'s type ' + ast.type);
+    }
+
+    return res;
+  }
+
   return {
     /**
      * Exact ES's grammar rules.
@@ -939,6 +1067,22 @@ var re = (function() {
       reset();
       stream = s;
       return parsePattern(stream);
+    },
+    /**
+     * Converts abstract syntax tree to string representation of regexp it represents.
+     * @param {Object} ast Abstract syntax tree.
+     * @return {string} String representation of abstract syntax tree.
+     */
+    astToString: function(ast) {
+      return astToString(ast);
+    },
+    /**
+     * Compiles abstract syntax tree to RegExp object.
+     * @param {Object} ast Abstract syntax tree.
+     * @return {RegExp} Created regular expression.
+     */
+    compile: function(ast) {
+      return new RegExp(this.astToString(ast));
     }
   };
 })();
