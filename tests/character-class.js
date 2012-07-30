@@ -1,3 +1,5 @@
+test.beginGroup('character class');
+
 test.eq(
   '[a]',
   re.parse('[a]'),
@@ -17,3 +19,5 @@ test.eq(
     value: {type: re.T_CONCAT, left: {type: re.T_CHAR, value: 'a'}, right: {type: re.T_CHAR, value: 'b'}}
   }
 );
+
+test.endGroup();

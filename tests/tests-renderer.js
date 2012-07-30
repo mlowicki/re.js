@@ -166,5 +166,14 @@ TestsRenderer.prototype = {
     this.numOfTests_ += 1;
     isSuccess ? this.numOfSuccess_++ : this.numOfFailures_++;
     this.summaryEl_.innerHTML = 'Score: ' + this.numOfSuccess_ + ' / ' + this.numOfTests_;
-  } 
+  },
+  /**
+   * Starts new group.
+   * @param {string} groupName Group's name.
+   */
+  beginGroup: function(groupName) {},
+  /**
+   * Ends currently active group.
+   */
+  endGroup: function() {}
 };

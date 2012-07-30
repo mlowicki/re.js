@@ -1,3 +1,5 @@
+test.beginGroup('quantifier');
+
 test.eq(
   'a*',
   re.parse('a*'),
@@ -161,3 +163,5 @@ test.throws(
   SyntaxError,
   'Numbers out of order in quantifier'
 );
+
+test.endGroup();

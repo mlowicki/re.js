@@ -1,3 +1,5 @@
+test.beginGroup('escapes');
+
 test.eq(
   '\\ca',
   re.parse('\\ca'),
@@ -58,4 +60,6 @@ test.eq(
     re.parse('\\' + item.character),
     {type: re.T_CCE, value: item.type} 
   );
-}); 
+});
+
+test.endGroup();

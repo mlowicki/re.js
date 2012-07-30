@@ -2,16 +2,35 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <link rel="stylesheet" href="tests-renderer.css">
   <link rel="stylesheet" href="../deps/bootstrap/css/bootstrap.css">
+  <link rel="stylesheet" href="tree-view.css">
+  <link rel="stylesheet" href="tree-view-test-renderer.css">
+  <link rel="stylesheet" href="table-test-renderer.css">
 </head>
 <body>
   <script src="../deps/jquery-1.7.1.js"></script>
   <script src="../deps/bootstrap/js/bootstrap-modal.js"></script>
   <script src="../../test.js/test.js"></script>
   <script src="tests-renderer.js"></script>
+  <script src="../deps/google-closure/closure/goog/base.js"></script>
   <script>
-    var renderer = new TestsRenderer(document.body);
+    goog.require('goog.array');
+    goog.require('goog.Disposable');
+    goog.require('goog.events');
+    goog.require('goog.events.EventHandler');
+    goog.require('goog.events.EventTarget');
+    goog.require('goog.events.EventType');
+    goog.require('goog.dom');
+    goog.require('goog.structs.Map');
+    goog.require('goog.style');
+    goog.require('goog.ui.IdGenerator');
+  </script>
+  <script src="tree-view.js"></script>
+  <script src="tests-results-tree-view.js"></script>
+  <script src="tree-view-test-renderer.js"></script>
+  <script>
+    //var renderer = new TestsRenderer(document.body);
+    var renderer = new TreeViewTestRenderer();
     test.init(renderer);
   </script>
   <script src="../re.js"></script>
@@ -24,5 +43,8 @@
   <script src="escapes.js"></script>
   <script src="real-examples.js"></script>
   <script src="ast-to-string.js"></script>
+  <script>
+    renderer.show();
+  </script>
 </body>
 </html>

@@ -1,0 +1,62 @@
+.tree-view-children {
+  margin-left: 18px;
+}
+
+.tree-view-name {
+  margin-bottom: 2px;
+}
+
+.tree-view-name {
+  display: inline-block;
+  color: #fff;
+  padding: 4px 10px;
+  border-width: 1px;
+  border-style: solid;
+  background-repeat: repeat-x;
+  border-radius: 2px;
+  border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
+  cursor: default;
+}
+
+.tree-view-name.success {
+  background-color: #5BB75B;
+  background-image: -ms-linear-gradient(top, #62C462, #51A351);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#62C462), to(#51A351));
+  background-image: -webkit-linear-gradient(top, #62C462, #51A351);
+  background-image: -o-linear-gradient(top, #62C462, #51A351);
+  background-image: -moz-linear-gradient(top, #62C462, #51A351);
+  background-image: linear-gradient(top, #62C462, #51A351);
+}
+
+.tree-view-name.failure {
+  background-color: #DA4F49;
+  background-image: -ms-linear-gradient(top, #EE5F5B, #BD362F);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#EE5F5B), to(#BD362F));
+  background-image: -webkit-linear-gradient(top, #EE5F5B, #BD362F);
+  background-image: -o-linear-gradient(top, #EE5F5B, #BD362F);
+  background-image: -moz-linear-gradient(top, #EE5F5B, #BD362F);
+  background-image: linear-gradient(top, #EE5F5B, #BD362F);
+}
+
+.tree-view-toggler {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  line-height: 14px;
+  vertical-align: text-top;
+  background-image: url("../deps/bootstrap/img/glyphicons-halflings.png");
+  background-position: -408px -96px;
+  background-repeat: no-repeat;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  opacity: 0.6;
+}
+
+.tree-view-toggler:hover {
+  opacity: 1;
+}
+
+.tree-view-node-expanded > .tree-view-toggler {
+  background-position: -433px -96px;
+}

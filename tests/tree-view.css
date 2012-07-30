@@ -1,0 +1,35 @@
+.tree-view-children {
+  display: none;
+  margin-left: 12px;
+}
+
+.tree-view > .tree-view-children {
+  margin-left: 0;
+}
+
+.tree-view-toggler {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.tree-view-toggler {
+  width: 11px;
+  height: 11px;
+  display: inline-block;
+  background-color: #000;
+  border: 1px solid #000;
+  margin-right: 4px;
+}
+
+.tree-view > .tree-view-children,
+.tree-view-node-expanded > .tree-view-children {
+  display: block;
+}
+
+.tree-view-node-expanded > .tree-view-toggler {
+  background-color: #fff;
+}

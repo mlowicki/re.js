@@ -1,3 +1,5 @@
+test.beginGroup('general');
+
 test.eq(
   'empty',
   re.parse(''),
@@ -38,3 +40,5 @@ test.eq(
   re.parse('(?:a)'),
   {type: re.T_GROUP, capturing: false, value: {type: re.T_CHAR, value: 'a'}}
 );
+
+test.endGroup();

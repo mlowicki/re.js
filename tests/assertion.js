@@ -1,3 +1,5 @@
+test.beginGroup('assertion');
+
 test.eq(
   '^',
   re.parse('^'),
@@ -43,3 +45,5 @@ test.eq(
   re.parse('(?!a)'),
   { type: re.T_ASSERT, value: '?!', tester: { type: re.T_CHAR, value: 'a' } }
 );
+
+test.endGroup();

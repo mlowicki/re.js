@@ -1,3 +1,5 @@
+test.beginGroup('quirks');
+
 test.eq(
   '"{" treated verbatim',
   re.parse('{'),
@@ -13,3 +15,5 @@ test.eq(
   re.parse(']'),
   {type: re.T_CHAR, value: ']'}
 );
+
+test.endGroup();

@@ -1,3 +1,5 @@
+test.beginGroup('real examples');
+
 test.eq(
   'Escape regexp special characters',
   re.parse('[\\-\\[\\]\\/\\{\\}\\(\\)\\*\\+\\?\\.\\\\\\^\\$\\|]'),
@@ -67,3 +69,5 @@ test.eq(
     }
   }
 );
+
+test.endGroup();

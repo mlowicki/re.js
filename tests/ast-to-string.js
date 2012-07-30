@@ -1,3 +1,5 @@
+test.beginGroup('ast to string');
+
 test.eq(
   'a',
   re.astToString({type: re.T_CHAR, value: 'a'}),
@@ -17,7 +19,7 @@ test.eq(
 );
 
 test.eq(
-  '',
+  'empty',
   re.astToString({type: re.T_EMPTY}),
   ''
 );
@@ -253,3 +255,5 @@ test.eq(
   }),
   'a{2,}?'
 );
+
+test.endGroup();

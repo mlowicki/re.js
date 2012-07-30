@@ -1,3 +1,5 @@
+test.beginGroup('dot');
+
 test.eq(
   '.',
   re.parse('.'),
@@ -13,3 +15,5 @@ test.eq(
   re.parse('(.)'),
   {type: re.T_GROUP, capturing: true, value: {type: re.T_DOT}}
 );
+
+test.endGroup();

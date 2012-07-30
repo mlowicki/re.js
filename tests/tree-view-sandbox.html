@@ -1,0 +1,63 @@
+<!doctype html>
+<html>
+<head>
+  <script src="../deps/google-closure/closure/goog/base.js"></script>
+  <link rel="stylesheet" href="tree-view.css">
+  <style>
+    .tree-view-name.success {
+      background-color: green;
+    }
+
+    .tree-view-name.failure {
+      background-color: red;
+    }
+  </style>
+  <script>
+    goog.require('goog.array');
+    goog.require('goog.Disposable');
+    goog.require('goog.events');
+    goog.require('goog.events.EventTarget');
+    goog.require('goog.events.EventType');
+    goog.require('goog.dom');
+    goog.require('goog.structs.Map');
+    goog.require('goog.style');
+    goog.require('goog.ui.IdGenerator');
+  </script>
+  <script src="tree-view.js"></script>
+  <script src="tests-results-tree-view.js"></script>
+  <script>
+    window.onload = function() {
+      tv = new TreeView.TreeView('tests');
+
+      var tmp = new TestsResultsTreeView.TreeNode('1');
+      tmp.addChild(new TestsResultsTreeView.TreeNode('1.1', true));
+      tmp.addChild(new TestsResultsTreeView.TreeNode('1.2', true));
+      tmp.addChild(new TestsResultsTreeView.TreeNode('1.3', false));
+      tv.addChild(tmp);
+
+      tmp = new TestsResultsTreeView.TreeNode('2');
+      var tmp2 = new TestsResultsTreeView.TreeNode('2.1');
+      tmp2.addChild(new TestsResultsTreeView.TreeNode('2.1.1', true));
+      tmp2.addChild(new TestsResultsTreeView.TreeNode('2.1.2', true));
+      tmp2.addChild(new TestsResultsTreeView.TreeNode('2.1.3', false));
+      tmp.addChild(tmp2);
+
+      tmp.addChild(new TestsResultsTreeView.TreeNode('2.2', true));
+      tv.addChild(tmp);
+
+      tmp = new TestsResultsTreeView.TreeNode('3');
+      tmp.addChild(new TestsResultsTreeView.TreeNode('3.1', true));
+      tmp.addChild(new TestsResultsTreeView.TreeNode('3.2', true));
+      tmp.addChild(new TestsResultsTreeView.TreeNode('3.3', true));
+      tv.addChild(tmp);
+
+      tv.addChild(new TestsResultsTreeView.TreeNode('4'));
+
+      tv.render(document.body); 
+    };
+  </script>
+</head>
+<body>
+
+</body>
+</html>
