@@ -52,6 +52,20 @@ function TreeViewTestRenderer() {
    */
   this.currentParent_ = this.tv_;
 
+  /**
+   * Number of all tests.
+   * @type {number}
+   * @private
+   */
+  this.numOfTests_ = 0;
+
+  /**
+   * Number of success tests.
+   * @type {number}
+   * @private
+   */
+  this.numOfSuccess_ = 0;
+
   this.initEvents_();
 };
 goog.inherits(TreeViewTestRenderer, goog.Disposable);
@@ -139,8 +153,19 @@ TreeViewTestRenderer.prototype.endGroup = function() {
 TreeViewTestRenderer.prototype.showTestResult = function(success, title, reason) {
   var node = new TestsResultsTreeView.TreeNode(title, success, this.currentParent_, reason);
   this.currentParent_.addChild(node);
+
+  this.numOfTests_ += 1;
+  success && this.numOfSuccess_++;
 };
 
+/**
+ * Shows test results.
+ */
 TreeViewTestRenderer.prototype.show = function() {
-  this.tv_.render(document.body);
+  var parentElement = document.body,
+      scoreElement = goog.dom.createDom('h2', {'class': 'tv-test-renderer-score'},
+        'Score: ' + this.numOfSuccess_ + '/' + this.numOfTests_);
+
+  parentElement.appendChild(scoreElement);
+  this.tv_.render(parentElement);
 };

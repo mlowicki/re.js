@@ -1,12 +1,12 @@
-.tree-view-children {
+.tv-children {
   margin-left: 18px;
 }
 
-.tree-view-name {
+.tv-name {
   margin-bottom: 2px;
 }
 
-.tree-view-name {
+.tv-name {
   display: inline-block;
   color: #fff;
   padding: 4px 10px;
@@ -18,7 +18,7 @@
   cursor: default;
 }
 
-.tree-view-name.success {
+.tv-name.success {
   background-color: #5BB75B;
   background-image: -ms-linear-gradient(top, #62C462, #51A351);
   background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#62C462), to(#51A351));
@@ -28,7 +28,7 @@
   background-image: linear-gradient(top, #62C462, #51A351);
 }
 
-.tree-view-name.failure {
+.tv-name.failure {
   background-color: #DA4F49;
   background-image: -ms-linear-gradient(top, #EE5F5B, #BD362F);
   background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#EE5F5B), to(#BD362F));
@@ -38,7 +38,7 @@
   background-image: linear-gradient(top, #EE5F5B, #BD362F);
 }
 
-.tree-view-toggler {
+.tv-toggler {
   display: inline-block;
   width: 14px;
   height: 14px;
@@ -53,10 +53,14 @@
   opacity: 0.6;
 }
 
-.tree-view-toggler:hover {
+.tv-toggler:hover {
   opacity: 1;
 }
 
-.tree-view-node-expanded > .tree-view-toggler {
+.tv-node-expanded > .tv-toggler {
   background-position: -433px -96px;
+}
+
+.tv-test-renderer-score {
+  text-align: center;
 }

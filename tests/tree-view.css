@@ -1,13 +1,13 @@
-.tree-view-children {
+.tv-children {
   display: none;
   margin-left: 12px;
 }
 
-.tree-view > .tree-view-children {
+.tv > .tv-children {
   margin-left: 0;
 }
 
-.tree-view-toggler {
+.tv-toggler {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   -khtml-user-select: none;
@@ -16,7 +16,7 @@
   user-select: none;
 }
 
-.tree-view-toggler {
+.tv-toggler {
   width: 11px;
   height: 11px;
   display: inline-block;
@@ -25,11 +25,11 @@
   margin-right: 4px;
 }
 
-.tree-view > .tree-view-children,
-.tree-view-node-expanded > .tree-view-children {
+.tv > .tv-children,
+.tv-node-expanded > .tv-children {
   display: block;
 }
 
-.tree-view-node-expanded > .tree-view-toggler {
+.tv-node-expanded > .tv-toggler {
   background-color: #fff;
 }

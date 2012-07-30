@@ -99,7 +99,7 @@ TreeView.TreeNode.prototype.maybeCreateToggler_ = function() {
 
   if (!this.toggler_ && this.children_.length) {
     this.toggler_ = document.createElement('span');
-    this.toggler_.className = 'tree-view-toggler';
+    this.toggler_.className = 'tv-toggler';
     this.element_.appendChild(this.toggler_);
   }
 };
@@ -113,7 +113,7 @@ TreeView.TreeNode.prototype.maybeCreateChildrenBox_ = function() {
 
   if (!this.childrenElement_ && this.children_.length) {
     this.childrenElement_ = document.createElement('div');
-    this.childrenElement_.className = 'tree-view-children';
+    this.childrenElement_.className = 'tv-children';
     this.element_.appendChild(this.childrenElement_);
   }
 };
@@ -126,7 +126,7 @@ TreeView.TreeNode.prototype.createNameElement_ = function() {
   goog.asserts.assert(this.element_, 'Node hasn\'t been rednered yet');
 
   this.nameElement_ = document.createElement('span');
-  this.nameElement_.className = 'tree-view-name';
+  this.nameElement_.className = 'tv-name';
   this.nameElement_.innerHTML = this.name_;
   this.element_.appendChild(this.nameElement_);
 };
@@ -141,7 +141,7 @@ TreeView.TreeNode.prototype.render = function(opt_container) {
   }
 
   this.element_ = document.createElement('div');
-  this.element_.className = 'tree-view-node';
+  this.element_.className = 'tv-node';
   
   this.maybeCreateToggler_();
   this.createNameElement_();
@@ -178,10 +178,10 @@ TreeView.TreeNode.prototype.addChild = function(child) {
  */
 TreeView.TreeNode.prototype.recalcCSSClasses_ = function() {
   if (this.state_ === this.STATE.EXPANDED) {
-    goog.dom.classes.add(this.element_, 'tree-view-node-expanded');
+    goog.dom.classes.add(this.element_, 'tv-node-expanded');
   }
   else {
-    goog.dom.classes.remove(this.element_, 'tree-view-node-expanded');
+    goog.dom.classes.remove(this.element_, 'tv-node-expanded');
   }
 };
 
@@ -251,7 +251,7 @@ TreeView.TreeView.EventType = {
  */
 TreeView.TreeView.prototype.render = function(container) {
   this.element_ = document.createElement('div');
-  this.element_.className = 'tree-view';
+  this.element_.className = 'tv';
   this.maybeCreateChildrenBox_();
   this.children_.forEach(function(child) {
     child.render();
@@ -276,11 +276,11 @@ TreeView.TreeView.prototype.render = function(container) {
 TreeView.TreeView.prototype.handleClick_ = function(e) {
   var target = e.target;
 
-  if (goog.dom.classes.has(target, 'tree-view-toggler')) {
+  if (goog.dom.classes.has(target, 'tv-toggler')) {
     var node = TreeView.Manager.getNodeById(target.parentNode.id); 
     node && node.toggle();
   }
-  else if (goog.dom.classes.has(target, 'tree-view-name')) {
+  else if (goog.dom.classes.has(target, 'tv-name')) {
     this.dispatchEvent({
       type: TreeView.TreeView.EventType.NODE_CLICK,
       node: TreeView.Manager.getNodeById(target.parentNode.id)
