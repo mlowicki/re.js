@@ -876,9 +876,10 @@ var re = (function() {
 
   /**
    * @param {Object} ast Abstract syntax tree.
+   * @param {boolean=} opt_root True if specified ast's node is root.
    * @return {string} String representation of abstract syntax tree.
    */
-  function astToString(ast) {
+  function astToString(ast, opt_root) {
     var res = '';
 
     switch(ast.type) {
@@ -902,7 +903,7 @@ var re = (function() {
       case re.T_GROUP:
         res += '(';
         !ast.capturing && (res += '?:');
-        res += astToString(ast.value, ast);
+        res += astToString(ast.value);
         res += ')';
         break;
       case re.T_CCE:
@@ -947,12 +948,12 @@ var re = (function() {
       case re.T_ASSERT:
         if (ast.value === '?!') {
           res += '(?!';
-          res += astToString(ast.tester, ast);
+          res += astToString(ast.tester);
           res += ')';
         }
         else if (ast.value === '?=') {
           res += '(?=';
-          res += astToString(ast.tester, ast);
+          res += astToString(ast.tester);
           res += ')';
         }
         else {
@@ -962,13 +963,15 @@ var re = (function() {
       case re.T_CHAR_CLASS:
         res += '[';
         ast.negated && (res += '^');
-        res += astToString(ast.value, ast);
+        res += astToString(ast.value);
         res += ']';
         break;
       case re.T_RANGE:
-        res += astToString(ast.from, ast);
+        opt_root !== undefined && opt_root && (res += '[');
+        res += astToString(ast.from);
         res += '-';
-        res += astToString(ast.to, ast);
+        res += astToString(ast.to);
+        opt_root !== undefined && opt_root && (res += ']');
         break;
       case re.T_REPEAT:
         res += astToString(ast.atom);
@@ -1074,7 +1077,7 @@ var re = (function() {
      * @return {string} String representation of abstract syntax tree.
      */
     astToString: function(ast) {
-      return astToString(ast);
+      return astToString(ast, true);
     },
     /**
      * Compiles abstract syntax tree to RegExp object.
@@ -1082,7 +1085,7 @@ var re = (function() {
      * @return {RegExp} Created regular expression.
      */
     compile: function(ast) {
-      return new RegExp(this.astToString(ast));
+      return new RegExp(this.astToString(ast, true));
     }
   };
 })();
